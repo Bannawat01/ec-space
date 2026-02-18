@@ -1,5 +1,5 @@
-import { useCart } from '../CartContext';
-import api from '../api';
+import { useCart } from '../contexts/CartContext';
+import api from '../services/api';
 
 function Cart() {
   const { cart, clearCart, updateQuantity, removeFromCart } = useCart();

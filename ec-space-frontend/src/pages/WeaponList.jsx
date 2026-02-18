@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import api from '../api';
-import { useCart } from '../CartContext'; 
+import api from '../services/api';
+import { useCart } from '../contexts/CartContext'; 
 
 function WeaponList() {
   const { addToCart } = useCart(); 

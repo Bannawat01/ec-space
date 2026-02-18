@@ -3,10 +3,10 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import WeaponList from './pages/WeaponList';
 import Admin from './pages/Admin';
-import Cart from './pages/Cart'; 
-import Navbar from './Navbar'; 
+import Cart from './pages/Cart';
+import Navbar from './components/Navbar';
 import Topup from './pages/Topup';
-import OrderHistory from './pages/OrderHistory'; // 🆕 นำเข้าหน้าประวัติการสั่งซื้อ
+import OrderHistory from './pages/OrderHistory';
 
 // Component เช็คสิทธิ์เข้าถึงหน้าต่างๆ (ต้องล็อกอินก่อน)
 const ProtectedRoute = ({ children }) => {
