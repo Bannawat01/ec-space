@@ -1,24 +1,12 @@
 package routes
 
 import (
-	"time"
-
 	"github.com/Bannawat01/ec-space/handlers"
 	"github.com/Bannawat01/ec-space/middleware"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func SetupRoutes(r *gin.Engine) {
-	// CORS configuration
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Authorization", "Content-Type"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
-
 	// Public routes
 	r.GET("/api/weapons", handlers.GetWeapons)
 	r.POST("/api/register", handlers.Register)

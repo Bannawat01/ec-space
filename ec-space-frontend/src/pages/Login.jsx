@@ -53,7 +53,7 @@ function Login() {
               required
             />
           </div>
-          <button className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-4 rounded-xl shadow-lg shadow-cyan-900/20 transition-all active:scale-95 uppercase tracking-widest">
+          <button type="submit" className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-black py-4 rounded-xl shadow-lg shadow-cyan-900/20 transition-all active:scale-95 uppercase tracking-widest">
             Authorize Now
           </button>
         </form>

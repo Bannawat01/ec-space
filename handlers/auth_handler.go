@@ -17,7 +17,7 @@ var jwtKey = []byte("galactic_secret_key_99")
 func Register(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลไม่ถูกต้อง"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลไม่ถูกต้อง: " + err.Error()})
 		return
 	}
 
@@ -30,7 +30,10 @@ func Register(c *gin.Context) {
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	user.Password = string(hashedPassword)
 
-	config.DB.Create(&user)
+	if err := config.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้แล้ว หรือ " + err.Error()})
+		return
+	}
 	c.JSON(http.StatusCreated, gin.H{"message": "ลงทะเบียนสำเร็จ!"})
 }
 
