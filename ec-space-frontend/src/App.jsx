@@ -8,7 +8,6 @@ import Navbar from './components/Navbar';
 import Topup from './pages/Topup';
 import OrderHistory from './pages/OrderHistory';
 
-// Component เช็คสิทธิ์เข้าถึงหน้าต่างๆ (ต้องล็อกอินก่อน)
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem('token');
   if (!token) return <Navigate to="/login" />; 
@@ -18,38 +17,33 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
-      {/* Navbar แสดงผลคงที่ทุกหน้า เพื่อโชว์ Credits และ Badge ตะกร้า */}
-      <Navbar />
+      <div className="relative min-h-screen w-full">
+        {/* วิดีโอพื้นหลัง - ตรวจสอบชื่อไฟล์ space_bg.mp4 ในโฟลเดอร์ public */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="fixed top-0 left-0 w-full h-full object-cover -z-20"
+        >
+          <source src="/space_bg.mp4" type="video/mp4" />
+        </video>
 
-      {/* พื้นหลังธีม Dark Mode ของทั้งระบบ */}
-      <div className="min-h-screen bg-slate-950">
-        <Routes>
-          {/* 🌎 หน้าที่เข้าถึงได้ทั่วไป */}
-          <Route path="/" element={<WeaponList />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/cart" element={<Cart />} />
-          
-          {/* 🔐 หน้าที่ต้องล็อกอินก่อนเข้าใช้งาน (Protected Routes) */}
-          <Route path="/topup" element={
-            <ProtectedRoute>
-              <Topup />
-            </ProtectedRoute>
-          } />
+        {/* ฟิลเตอร์มืดเพื่อให้ตัวหนังสืออ่านง่าย */}
+        <div className="fixed top-0 left-0 w-full h-full bg-black/40 -z-10" />
 
-          {/* 🆕 เพิ่มเส้นทางสำหรับดูประวัติการสั่งซื้อ */}
-          <Route path="/history" element={
-            <ProtectedRoute>
-              <OrderHistory />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/admin" element={
-            <ProtectedRoute>
-              <Admin />
-            </ProtectedRoute>
-          } />
-        </Routes>
+        <div className="relative z-10 pt-20">
+          <Navbar />
+          <Routes>
+            <Route path="/" element={<WeaponList />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/topup" element={<ProtectedRoute><Topup /></ProtectedRoute>} />
+            <Route path="/history" element={<ProtectedRoute><OrderHistory /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+          </Routes>
+        </div>
       </div>
     </Router>
   );

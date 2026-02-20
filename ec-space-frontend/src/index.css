@@ -1,1 +1,20 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  background-color: black; /* ป้องกันแสงขาวแลบ */
+  color: white;
+  overflow-x: hidden;
+}
+
+/* ลบสีพื้นหลังสีขาวของช่อง input เวลา browser จดจำรหัสผ่าน */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: white;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0,0,0,0.5) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
