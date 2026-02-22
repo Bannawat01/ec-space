@@ -14,3 +14,16 @@ func GetWeapons(c *gin.Context) {
 	config.DB.Find(&weapons)
 	c.JSON(http.StatusOK, weapons)
 }
+
+// GetWeapon - Get a single weapon by ID (public)
+func GetWeapon(c *gin.Context) {
+	id := c.Param("id")
+	var weapon models.Weapon
+
+	if err := config.DB.First(&weapon, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "ไม่พบอาวุธ"})
+		return
+	}
+
+	c.JSON(http.StatusOK, weapon)
+}

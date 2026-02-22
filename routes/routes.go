@@ -9,6 +9,7 @@ import (
 func SetupRoutes(r *gin.Engine) {
 	// Public routes
 	r.GET("/api/weapons", handlers.GetWeapons)
+	r.GET("/api/weapons/:id", handlers.GetWeapon)
 	r.POST("/api/register", handlers.Register)
 	r.POST("/api/login", handlers.Login)
 
@@ -18,6 +19,8 @@ func SetupRoutes(r *gin.Engine) {
 	{
 		// Profile & Topup
 		auth.GET("/profile", handlers.GetProfile)
+		// Allow users to update their profile (address, email)
+		auth.PATCH("/profile", handlers.UpdateProfile)
 		auth.POST("/topup", handlers.Topup)
 
 		// Cart

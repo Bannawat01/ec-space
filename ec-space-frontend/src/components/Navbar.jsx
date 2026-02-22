@@ -13,6 +13,19 @@ function Navbar() {
         .then(res => setCredits(res.data.credits || 0))
         .catch(() => setCredits(0));
     }
+    // Listen for profile updates from other parts of the app (topup / checkout)
+    const fetchProfile = () => {
+      if (!username) return;
+      api.get('/profile')
+        .then(res => setCredits(res.data.credits || 0))
+        .catch(() => setCredits(0));
+    };
+
+    window.addEventListener('profileUpdated', fetchProfile);
+
+    return () => {
+      window.removeEventListener('profileUpdated', fetchProfile);
+    };
   }, [username]);
 
   return (
@@ -48,7 +61,7 @@ function Navbar() {
 
           {username ? (
             <div className="flex items-center gap-4 border-l border-white/20 pl-6">
-              <span className="text-white italic">{username}</span>
+              <Link to="/profile" className="text-white italic hover:text-cyan-400">{username}</Link>
               <button onClick={() => { localStorage.clear(); navigate('/login'); window.location.reload(); }} className="text-white/40 hover:text-red-500 font-black">EXIT</button>
             </div>
           ) : (

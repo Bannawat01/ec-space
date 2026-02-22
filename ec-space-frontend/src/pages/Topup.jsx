@@ -1,4 +1,3 @@
-// ไฟล์ Topup.jsx เบื้องต้น
 import { useState } from 'react';
 import api from '../services/api';
 
@@ -7,23 +6,40 @@ function Topup() {
 
   const handleTopup = async () => {
     try {
-      await api.post('/topup', { amount: Number(amount) });
+      const token = localStorage.getItem('token'); // ดึง token ถ้ามี
+      await api.post('/topup', { amount: Number(amount) }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       alert('เติม Point สำเร็จ!');
       window.location.reload();
-    } catch (err) { alert('ผิดพลาด'); }
+    } catch (err) { 
+      alert('การเติมเงินล้มเหลว กรุณาลองใหม่'); 
+    }
   };
 
   return (
-    <div className="max-w-xl mx-auto bg-white/5 backdrop-blur-xl p-10 rounded-[2.5rem] border border-white/10 mt-10">
-      <h2 className="text-3xl font-black italic mb-6">REPLENISH CREDITS</h2>
-      <input 
-        type="number" 
-        className="w-full bg-black/40 border border-white/10 p-4 rounded-xl mb-4 text-white" 
-        placeholder="ระบุจำนวน..." 
-        onChange={(e) => setAmount(e.target.value)}
-      />
-      <button onClick={handleTopup} className="w-full bg-cyan-600 p-4 rounded-xl font-black uppercase">Confirm</button>
+  <div className="min-h-screen w-full bg-transparent flex items-center justify-center p-6">
+    {/* ปรับกล่องเติมเงินให้ใสเห็นวิดีโอ */}
+    <div className="max-w-xl w-full bg-black/50 backdrop-blur-2xl p-12 rounded-[3.5rem] border border-white/10 shadow-2xl">
+      <h2 className="text-4xl font-black italic mb-2 text-white uppercase text-center">
+        Replenish <span className="text-cyan-400">Credits</span>
+      </h2>
+      <p className="text-slate-500 text-[10px] uppercase tracking-[0.4em] mb-10 text-center">Secure Terminal</p>
+      
+      <div className="space-y-6">
+        <input 
+          type="number" 
+          className="w-full bg-black/40 border border-white/10 p-6 rounded-2xl text-3xl font-mono text-cyan-400 text-center outline-none" 
+          placeholder="0" 
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <button onClick={handleTopup} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white p-6 rounded-2xl font-black uppercase shadow-lg">
+          Confirm Transfer
+        </button>
+      </div>
     </div>
-  );
+  </div>
+);
 }
+
 export default Topup;

@@ -1,1 +1,63 @@
 @import "tailwindcss";
+
+/* 🌌 บังคับล้างสีพื้นหลังของทุก Element ให้เป็นโปร่งใส */
+@layer base {
+  *, ::before, ::after {
+    background-color: transparent !important;
+  }
+
+  html, body, #root {
+    background-color: transparent !important;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    color: white;
+  }
+}
+
+/* 🖼️ ยกเว้นส่วนที่ต้องการให้มีสี (เช่น Card หรือ Modal) */
+.glass-panel {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Component utilities for consistent buttons and search input
+   Replaced Tailwind @apply rules with plain CSS to avoid editor warnings
+*/
+button {
+  background-color: #06b6d4; /* approx cyan-500 */
+  color: #000;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(2,6,23,0.45);
+  transition: background-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+  border: none;
+}
+button:hover { background-color: #0891b2; }
+button:focus { box-shadow: 0 0 0 4px rgba(6,182,212,0.16); outline: none; }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.search-input {
+  width: 100%;
+  background-color: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  color: #fff;
+}
+.search-input::placeholder { color: rgba(148,163,184,0.7); }
+.search-input:focus { outline: none; box-shadow: 0 0 0 6px rgba(6,182,212,0.08); }
+
+.btn-pill {
+  white-space: nowrap;
+  padding: 0.5rem 1.25rem;
+  border-radius: 1.25rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  user-select: none;
+  font-size: 0.875rem;
+}
+.btn-pill--active { background-color: #67e8f9; color: #000; box-shadow: 0 6px 18px rgba(2,6,23,0.35); }
+.btn-pill--muted  { background-color: rgba(0,0,0,0.3); color: #cbd5e1; }
+.btn-pill--muted:hover { background-color: rgba(0,0,0,0.4); color: #fff; }

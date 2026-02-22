@@ -64,6 +64,9 @@ func UpdateWeapon(c *gin.Context) {
 	if v := c.PostForm("description"); v != "" {
 		weapon.Description = v
 	}
+	if v := c.PostForm("type"); v != "" {
+		weapon.Type = v
+	}
 
 	file, err := c.FormFile("image")
 	if err == nil {

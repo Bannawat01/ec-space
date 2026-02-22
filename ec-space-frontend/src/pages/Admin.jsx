@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import api from '../services/api';
+import categories from '../constants/categories';
 
 function Admin() {
   const [weapons, setWeapons] = useState([]);
   const [editData, setEditData] = useState({});
-  const [newWeapon, setNewWeapon] = useState({ name: '', type: '', price: '', stock: '', description: '', image: null });
+  const [newWeapon, setNewWeapon] = useState({ name: '', type: 'Standard', price: '', stock: '', description: '', image: null });
   
   const username = localStorage.getItem('username');
 
@@ -101,6 +102,9 @@ function Admin() {
       <div className="mb-12 bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2.5rem] shadow-2xl">
         <form onSubmit={handleAddWeapon} className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input type="text" placeholder="Name" className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 outline-none" value={newWeapon.name} onChange={(e) => setNewWeapon({...newWeapon, name: e.target.value})} required />
+          <select value={newWeapon.type} onChange={(e) => setNewWeapon({...newWeapon, type: e.target.value})} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 outline-none text-black">
+            {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
           <input type="number" placeholder="Price" className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 outline-none" value={newWeapon.price} onChange={(e) => setNewWeapon({...newWeapon, price: e.target.value})} required />
           <input type="number" placeholder="Stock" className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 outline-none" value={newWeapon.stock} onChange={(e) => setNewWeapon({...newWeapon, stock: e.target.value})} required />
           <input type="file" className="text-xs self-center" onChange={(e) => setNewWeapon({...newWeapon, image: e.target.files[0]})} required />
@@ -128,6 +132,12 @@ function Admin() {
                 <td className="p-6">
                   <input defaultValue={weapon.name} onChange={(e) => handleChange(weapon.id, 'name', e.target.value)} className="bg-black/20 border border-white/10 rounded px-2 py-1 w-full mb-2 outline-none text-cyan-400 font-bold" />
                   <textarea defaultValue={weapon.description} onChange={(e) => handleChange(weapon.id, 'description', e.target.value)} className="bg-black/20 border border-white/10 rounded px-2 py-1 w-full h-16 text-xs text-slate-400 outline-none" />
+                  <div className="mt-2">
+                    <label className="text-xs text-slate-400">Category</label>
+                    <select defaultValue={weapon.type} onChange={(e) => handleChange(weapon.id, 'type', e.target.value)} className="bg-black/20 border border-white/10 rounded px-3 py-1 w-44 ml-0 outline-none text-black">
+                      {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
                 </td>
                 <td className="p-6">
                   <div className="flex flex-col gap-2">
