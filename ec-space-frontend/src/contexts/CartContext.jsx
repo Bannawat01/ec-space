@@ -38,20 +38,32 @@ export const CartProvider = ({ children }) => {
   }, []);
 
   // 🛒 2. เพิ่มสินค้าและบันทึกลง Database
-  const addToCart = async (weapon) => {
+  const addToCart = async (weapon, qty = 1) => {
     const token = localStorage.getItem('token');
-    if (!token) return alert("กรุณาล็อกอินก่อนเลือกสินค้า");
+    if (!token) {
+      window.dispatchEvent(new CustomEvent('appToast', { detail: { message: 'กรุณาล็อกอินก่อนเลือกสินค้า', type: 'error' } }));
+      return { ok: false, error: 'no_token' };
+    }
     
     try {
+      // basic front-end stock check
+      if (weapon.stock !== undefined && weapon.stock <= 0) {
+        window.dispatchEvent(new CustomEvent('appToast', { detail: { message: 'ขออภัย สินค้าหมดสต็อก', type: 'error' } }));
+        return;
+      }
+      console.debug('CartContext.addToCart request', { weapon_id: weapon.id, quantity: qty });
       // ส่งไปที่ POST /api/cart เพื่อบันทึกลงตาราง cart_items
-      await api.post('/cart', 
-        { weapon_id: weapon.id, quantity: 1 }, 
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.post('/cart', { weapon_id: weapon.id, quantity: qty }, { headers: { Authorization: `Bearer ${token}` } });
+      console.debug('CartContext.addToCart response', res);
       await fetchCart(); // ดึงข้อมูลล่าสุดจาก DB มาอัปเดต UI
-      alert(`เพิ่ม ${weapon.name} ลงในตะกร้าถาวรแล้ว!`);
+      window.dispatchEvent(new CustomEvent('appToast', { detail: { message: `เพิ่ม ${weapon.name} x${qty} ลงในตะกร้าสำเร็จ`, type: 'info' } }));
+      return { ok: true, data: res.data };
     } catch (error) {
-      alert(error.response?.data?.error || "เพิ่มสินค้าไม่สำเร็จ");
+      console.error('CartContext.addToCart error', error);
+      const msg = error.response?.data?.error || error.message || "เพิ่มสินค้าไม่สำเร็จ";
+      const status = error.response?.status;
+      window.dispatchEvent(new CustomEvent('appToast', { detail: { message: `${msg}${status ? ' (status:'+status+')' : ''}`, type: 'error', duration: 8000 } }));
+      return { ok: false, error: msg, status };
     }
   };
 

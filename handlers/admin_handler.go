@@ -29,11 +29,16 @@ func AddWeapon(c *gin.Context) {
 	imagePath := "uploads/" + newFileName
 	c.SaveUploadedFile(file, imagePath)
 
+	stockInt := 1
+	if stock != "" {
+		stockInt = utils.ToInt(stock)
+	}
+
 	newWeapon := models.Weapon{
 		Name:        name,
 		Type:        weaponType,
 		Price:       utils.ToFloat64(price),
-		Stock:       utils.ToInt(stock),
+		Stock:       stockInt,
 		Description: description,
 		ImageURL:    imagePath,
 	}
@@ -84,4 +89,13 @@ func UpdateWeapon(c *gin.Context) {
 func DeleteWeapon(c *gin.Context) {
 	config.DB.Delete(&models.Weapon{}, c.Param("id"))
 	c.JSON(200, gin.H{"message": "ลบอาวุธเรียบร้อย"})
+}
+
+// FixZeroStock - one-off admin helper: set weapons with stock 0 to stock 1
+func FixZeroStock(c *gin.Context) {
+	if err := config.DB.Model(&models.Weapon{}).Where("stock = 0").Update("stock", 1).Error; err != nil {
+		c.JSON(500, gin.H{"error": "ไม่สามารถอัปเดตสต็อกได้"})
+		return
+	}
+	c.JSON(200, gin.H{"message": "อัปเดตสต็อกเรียบร้อย"})
 }

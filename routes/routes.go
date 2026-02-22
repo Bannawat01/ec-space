@@ -41,6 +41,8 @@ func SetupRoutes(r *gin.Engine) {
 		admin.POST("/weapons", handlers.AddWeapon)
 		admin.PATCH("/weapons/:id", handlers.UpdateWeapon)
 		admin.DELETE("/weapons/:id", handlers.DeleteWeapon)
+		// One-off helper to update any weapons with zero stock
+		admin.POST("/fix-zero-stock", handlers.FixZeroStock)
 	}
 
 	// Static files

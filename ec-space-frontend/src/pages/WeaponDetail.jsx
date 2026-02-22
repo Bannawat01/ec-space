@@ -85,25 +85,37 @@ function WeaponDetail() {
           </div>
 
           <button
-            onClick={async () => {
+            onClick={async (e) => {
+              e.preventDefault();
+              const btn = e.currentTarget;
+              // check if button is covered by another element at its center
+              const rect = btn.getBoundingClientRect();
+              const cx = rect.left + rect.width / 2;
+              const cy = rect.top + rect.height / 2;
+              const topEl = document.elementFromPoint(cx, cy);
+              if (topEl && !btn.contains(topEl) && topEl !== btn) {
+                console.warn('Add to Cart button is covered by element:', topEl);
+                window.dispatchEvent(new CustomEvent('appToast', { detail: { message: 'ปุ่มถูกบังโดยองค์ประกอบอื่นบนหน้า กรุณาเลื่อนหน้าจอแล้วลองอีกครั้ง', type: 'error', duration: 6000 } }));
+                return;
+              }
+              console.log('Add to Cart clicked', weapon.id, quantity);
               const token = localStorage.getItem('token');
               if (!token) {
-                alert('กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า');
+                window.dispatchEvent(new CustomEvent('appToast', { detail: { message: 'กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า', type: 'error' } }));
                 navigate('/login');
                 return;
               }
 
               try {
-                // Use context helper to ensure UI cart state refreshes
-                await api.post('/cart', { weapon_id: weapon.id, quantity });
-                await fetchCart();
-                alert('เพิ่มสินค้าในตะกร้าเรียบร้อย');
+                // Use context helper to ensure UI cart state refreshes and respect quantity
+                await addToCart(weapon, quantity);
               } catch (err) {
                 console.error('Add to cart failed:', err);
-                alert(err.response?.data?.error || 'ไม่สามารถเพิ่มสินค้าลงตะกร้าได้');
+                const msg = err?.response?.data?.error || 'ไม่สามารถเพิ่มสินค้าลงตะกร้าได้';
+                window.dispatchEvent(new CustomEvent('appToast', { detail: { message: msg, type: 'error', duration: 6000 } }));
               }
             }}
-            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-6 rounded-2xl font-black uppercase"
+            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-6 rounded-2xl font-black uppercase relative z-[1000] cursor-pointer outline-2 outline-cyan-300/30"
           >
             Add to Cart
           </button>

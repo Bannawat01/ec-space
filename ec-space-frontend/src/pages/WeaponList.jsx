@@ -51,9 +51,9 @@ function WeaponList() {
         .filter(w => selectedCategory==='All' ? true : (w.type || 'Uncategorized')===selectedCategory)
         .filter(w => searchQuery.trim() === '' ? true : (w.name || '').toLowerCase().includes(searchQuery.toLowerCase()))
         .map((weapon) => (
-        <Link to={`/weapon/${weapon.id}`} key={weapon.id} className="group">
+        <Link to={`/weapon/${weapon.id}`} key={weapon.id} className="group relative z-50 pointer-events-auto" onClick={() => console.debug('Weapon card clicked', weapon.id)}>
           {/* ใช้พื้นหลังดำโปร่งแสง (bg-black/40) และ Blur (backdrop-blur) */}
-          <div className="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden hover:border-cyan-500/50 transition-all shadow-2xl">
+          <div className="relative bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden hover:border-cyan-500/50 transition-all shadow-2xl pointer-events-auto">
             <img src={`http://localhost:8080/${weapon.image_url}`} className="w-full h-64 object-cover" />
             <div className="p-6">
               <div className="flex items-center justify-between mb-3">
