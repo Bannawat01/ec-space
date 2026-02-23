@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/Bannawat01/ec-space/config"
@@ -33,12 +34,25 @@ func AddToCart(c *gin.Context) {
 	userID := val.(uint)
 
 	var input struct {
-		WeaponID uint `json:"weapon_id"`
-		Quantity int  `json:"quantity"`
+		WeaponID uint `json:"weapon_id" binding:"required"`
+		Quantity int  `json:"quantity" binding:"required,min=1"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลไม่ถูกต้อง"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "ข้อมูลไม่ถูกต้อง: " + err.Error()})
+		return
+	}
+
+	// Validate weapon exists and check stock
+	var weapon models.Weapon
+	if err := config.DB.First(&weapon, input.WeaponID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "สินค้าไม่พบ"})
+		return
+	}
+
+	// Check stock availability
+	if weapon.Stock < input.Quantity {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("สินค้ามีไม่เพียงพอ คงเหลือ %d ชิ้น", weapon.Stock)})
 		return
 	}
 
@@ -46,8 +60,15 @@ func AddToCart(c *gin.Context) {
 	err := config.DB.Where("user_id = ? AND weapon_id = ?", userID, input.WeaponID).First(&cartItem).Error
 
 	if err == nil {
-		config.DB.Model(&cartItem).Update("quantity", cartItem.Quantity+input.Quantity)
+		// Item already in cart - update quantity
+		newQty := cartItem.Quantity + input.Quantity
+		if newQty > weapon.Stock {
+			c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("จำนวนที่ขอมากเกินไป คงเหลือ %d ชิ้น", weapon.Stock)})
+			return
+		}
+		config.DB.Model(&cartItem).Update("quantity", newQty)
 	} else {
+		// New item - create cart item
 		config.DB.Create(&models.CartItem{
 			UserID:   userID,
 			WeaponID: input.WeaponID,
@@ -55,7 +76,7 @@ func AddToCart(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "บันทึกตะกร้าสำเร็จ"})
+	c.JSON(http.StatusOK, gin.H{"message": "บันทึกตะกร้าสำเร็จ", "weapon": weapon})
 }
 
 // RemoveFromCart - Remove item from cart

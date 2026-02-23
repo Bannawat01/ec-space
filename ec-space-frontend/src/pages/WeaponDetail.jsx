@@ -8,7 +8,7 @@ function WeaponDetail() {
   const { id } = useParams();
   const [weapon, setWeapon] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart, fetchCart } = useCart();
+  const { addToCart } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -94,13 +94,11 @@ function WeaponDetail() {
               }
 
               try {
-                // Use context helper to ensure UI cart state refreshes
-                await api.post('/cart', { weapon_id: weapon.id, quantity });
-                await fetchCart();
-                alert('เพิ่มสินค้าในตะกร้าเรียบร้อย');
+                await addToCart(weapon, quantity);
+                alert(`✅ เพิ่ม ${weapon.name} ลงตะกร้าแล้ว!`);
+                setQuantity(1);
               } catch (err) {
-                console.error('Add to cart failed:', err);
-                alert(err.response?.data?.error || 'ไม่สามารถเพิ่มสินค้าลงตะกร้าได้');
+                alert(`❌ ${err.message}`);
               }
             }}
             className="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-6 rounded-2xl font-black uppercase"

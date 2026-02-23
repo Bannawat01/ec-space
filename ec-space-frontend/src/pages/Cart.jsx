@@ -10,18 +10,15 @@ function Cart() {
     if (cart.length === 0) return alert("ตะกร้าว่างเปล่า!");
 
     try {
-      const token = localStorage.getItem('token');
       const payload = {
         total: totalPrice,
-        items: cart.map(item => ({ 
-          weapon_id: item.id, 
-          quantity: item.quantity || 1 
+        items: cart.map(item => ({
+          weapon_id: item.id,
+          quantity: item.quantity || 1
         }))
       };
 
-      await api.post('/orders', payload, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post('/orders', payload);
 
       // Notify other parts of the UI (Navbar) to refresh profile / credits
       window.dispatchEvent(new Event('profileUpdated'));
@@ -47,17 +44,21 @@ function Cart() {
         ) : (
           <div className="space-y-8">
             {cart.map((item, index) => {
+              // Add null/undefined checks for safety
+              if (!item || !item.id || !item.price || !item.stock) {
+                return null;
+              }
               const isMaxStock = item.quantity >= item.stock;
               return (
                 <div key={index} className="w-full bg-black/60 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 flex items-center gap-6">
                   <div className="w-40 h-28 rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 flex-shrink-0">
-                    <img src={`http://localhost:8080/${item.image_url}`} className="w-full h-full object-cover" alt="" />
+                    <img src={`http://localhost:8080/${item.image_url || ''}`} className="w-full h-full object-cover" alt={item.name || 'weapon'} />
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <h4 className="font-black text-2xl text-white truncate">{item.name}</h4>
                     <div className="flex items-center gap-4 mt-2">
-                      <span className="text-[11px] text-cyan-400 font-black uppercase bg-cyan-400/8 px-2 rounded">{item.type}</span>
+                      <span className="text-[11px] text-cyan-400 font-black uppercase bg-cyan-400/8 px-2 rounded">{item.type || 'N/A'}</span>
                       <span className="text-[12px] text-slate-400">In Stock: {item.stock}</span>
                     </div>
                     <p className="text-slate-400 mt-3">Unit: <span className="font-mono text-cyan-300">{Number(item.price).toLocaleString()} Cr</span></p>
