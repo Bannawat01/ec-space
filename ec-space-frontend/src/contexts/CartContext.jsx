@@ -7,90 +7,112 @@ export const CartContext = createContext();
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
 
-  // 🔄 1. ฟังก์ชันดึงข้อมูลตะกร้าจาก Database
-  const fetchCart = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setCart([]);
-      return;
-    }
-
+  // 🔄 1. ดึงข้อมูลตะกร้า
+ const fetchCart = async () => {
     try {
       const response = await api.get('/cart');
-      const formattedCart = response.data
-        .filter(item => item.weapon)
+      const data = Array.isArray(response.data) ? response.data : (response.data.items || []);
+      
+      const formattedCart = data
+        .filter(item => item && item.weapon)
         .map(item => ({
           ...item.weapon,
-          quantity: item.quantity
-        }));
+          quantity: item.quantity,
+          cart_item_id: item.id
+        }))
+        // 🌟 เพิ่มจุดนี้: เรียงลำดับตาม ID เสมอ เพื่อไม่ให้รายการเด้งไปมา
+        .sort((a, b) => a.id - b.id); 
+
       setCart(formattedCart);
     } catch (error) {
       console.error("โหลดตะกร้าไม่สำเร็จ:", error);
-      if (error.response?.status === 401) setCart([]);
     }
   };
 
-  // ดึงข้อมูลครั้งแรกเมื่อโหลดแอปหรือมีการเปลี่ยนสถานะการ Login
   useEffect(() => {
     fetchCart();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 🛒 2. เพิ่มสินค้าและบันทึกลง Database
-  const addToCart = async (weapon, customQuantity = 1) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert("กรุณาล็อกอินก่อนเลือกสินค้า");
-      throw new Error("No token");
+  // 🛒 2. เพิ่มสินค้า (ส่งค่าบวกปกติ)
+ const addToCart = async (weapon, customQuantity = 1) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert("กรุณาล็อกอินก่อนเลือกสินค้า");
+    return;
+  }
+
+  try {
+    const qtyToAdd = Number(customQuantity);
+    const weaponId = Number(weapon.id);
+
+    console.log(`กำลังเพิ่มสินค้า ID: ${weaponId} จำนวน: ${qtyToAdd}`);
+
+    const response = await api.post('/cart', {
+      weapon_id: weaponId,
+      quantity: qtyToAdd
+    });
+
+    if (response.status === 200 || response.status === 201) {
+      await fetchCart(); // อัปเดตตะกร้าให้เป็นปัจจุบัน
+      alert(`✅ เพิ่ม ${weapon.name} ลงตะกร้าเรียบร้อย!`);
     }
+  } catch (error) {
+    // 🔍 ดึง Error จริงๆ จาก Backend ออกมาโชว์
+    const errorMsg = error.response?.data?.error || error.response?.data?.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ";
+    
+    console.error('Add to cart failed:', errorMsg);
+    
+    // แจ้งเตือนผู้ใช้ว่าทำไมถึงเพิ่มไม่ได้ เช่น "สต็อกไม่พอ" หรือ "ข้อมูลไม่ถูกต้อง"
+    alert(`❌ เพิ่มสินค้าไม่ได้: ${errorMsg}`);
+  }
+};
+
+  const updateQuantity = async (weaponId, newQuantity) => {
+    const targetQty = Number(newQuantity);
+    if (targetQty < 1) return removeFromCart(weaponId);
 
     try {
-      const response = await api.post('/cart', {
-        weapon_id: weapon.id,
-        quantity: customQuantity
+      const token = localStorage.getItem('token');
+      
+      // 1. ค้นหาไอเทมเฉพาะตัวที่เราจะกดเท่านั้น
+      const itemInCart = cart.find(item => Number(item.id) === Number(weaponId));
+      if (!itemInCart) return;
+
+      // 2. ดำเนินการลบและเพิ่มใหม่ตามกลยุทธ์ Re-sync (ป้องกัน Stock Error)
+      await api.delete(`/cart/${weaponId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }); 
+
+      await api.post('/cart', {
+        weapon_id: Number(weaponId),
+        quantity: targetQty 
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('Successfully added to cart:', response.data);
-      await fetchCart();
-      return response.data;
+
+      // 🌟 3. จุดสำคัญ: ต้องโหลดตะกร้าใหม่ทั้งหมดจาก Server 
+      // เพื่อให้แน่ใจว่าสินค้าตัวอื่นยังคงค่าเดิมไว้ ไม่โดนเขียนทับใน State
+      await fetchCart(); 
+      
+      console.log(`✅ Updated only item ${weaponId} to ${targetQty}`);
     } catch (error) {
-      const errorMsg = error.response?.data?.error || error.message || "ไม่สามารถเพิ่มสินค้า";
-      console.error('Cart error:', errorMsg, error);
-      throw new Error(errorMsg);
+      console.error("Update failed:", error.message);
     }
   };
 
-  // ➕ 3. อัปเดตจำนวนสินค้า (บวก/ลบ) ใน Database
-  const updateQuantity = async (id, newQty) => {
-    if (newQty < 1) return;
-
-    const currentItem = cart.find(i => i.id === id);
-    if (!currentItem) return;
-
-    if (newQty > currentItem.stock) {
-      alert(`ขออภัย! อาวุธชิ้นนี้มีจำกัดเพียง ${currentItem.stock} ชิ้นเท่านั้น`);
-      return;
-    }
-
+  // 🗑️ 4. ลบสินค้า
+  const removeFromCart = async (weaponId) => {
     try {
-      const diff = newQty - currentItem.quantity;
-      await api.post('/cart', { weapon_id: id, quantity: diff });
+      // Backend ของคุณใช้ Delete โดยอ้างอิง Weapon ID
+      await api.delete(`/cart/${weaponId}`);
       await fetchCart();
     } catch (error) {
-      alert(error.response?.data?.error || "อัปเดตจำนวนไม่สำเร็จ");
-    }
-  };
-
-  // 🗑️ 4. ลบสินค้าออกจาก Database
-  const removeFromCart = async (id) => {
-    try {
-      await api.delete(`/cart/${id}`);
-      await fetchCart();
-    } catch {
+      console.error("Delete failed:", error);
       alert("ลบสินค้าไม่สำเร็จ");
     }
   };
 
-  // ฟังก์ชันล้างตะกร้าในหน้าบ้าน (ใช้หลัง Checkout สำเร็จ)
   const clearCart = () => setCart([]);
 
   return (
@@ -102,8 +124,6 @@ export const CartProvider = ({ children }) => {
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
+  if (!context) throw new Error('useCart must be used within a CartProvider');
   return context;
 };
