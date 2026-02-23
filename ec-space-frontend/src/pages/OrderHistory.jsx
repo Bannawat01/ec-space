@@ -88,7 +88,7 @@ function OrderHistory() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <p className="font-mono text-[10px] text-cyan-500/50 tracking-widest mb-1">
-            // MODULE: GALACTIC_ARCHIVE
+          
           </p>
           <h2 className="text-4xl md:text-5xl font-black tracking-tighter italic uppercase leading-none">
             <span className="text-white">XENO</span>{' '}

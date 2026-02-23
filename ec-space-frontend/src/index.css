@@ -1,10 +1,7 @@
 @import "tailwindcss";
 
-/* 🌌 บังคับล้างสีพื้นหลังของทุก Element ให้เป็นโปร่งใส */
 @layer base {
-  *, ::before, ::after {
-    background-color: transparent !important;
-  }
+  
 
   html, body, #root {
     background-color: transparent !important;
@@ -14,6 +11,15 @@
     color: white;
   }
 }
+
+  html, body, #root {
+    background-color: transparent !important;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    color: white;
+  }
+
 
 /* 🖼️ ยกเว้นส่วนที่ต้องการให้มีสี (เช่น Card หรือ Modal) */
 .glass-panel {

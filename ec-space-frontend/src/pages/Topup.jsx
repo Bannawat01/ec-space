@@ -268,7 +268,7 @@ function Topup() {
         {/* Page title */}
         <div className="mb-6 text-center">
           <p className="font-mono text-[10px] text-cyan-500/45 tracking-widest mb-1">
-            // MODULE: CREDIT_ACQUISITION_TERMINAL
+       
           </p>
           <h1 className="text-4xl font-black italic uppercase tracking-tighter leading-none">
             Replenish <span className="text-cyan-400">Credits</span>
@@ -291,6 +291,8 @@ function Topup() {
             </div>
           </div>
 
+       
+
           {/* ════════════════════════════════════════════════════════════════
               STAGE: SELECT AMOUNT
           ════════════════════════════════════════════════════════════════ */}
@@ -299,9 +301,6 @@ function Topup() {
 
               {/* Bento preset grid */}
               <div>
-                <p className="font-mono text-[9px] text-slate-600 uppercase tracking-[0.2em] mb-2.5">
-                  // SELECT CREDIT PACKAGE
-                </p>
                 <div className="grid grid-cols-3 gap-2">
                   {PRESETS.map(({ label, value }) => {
                     const active = selected === value;
@@ -318,23 +317,25 @@ function Topup() {
                         {active && (
                           <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-cyan-400" />
                         )}
-                        <span className={`block text-[8px] tracking-widest mb-1 ${active ? 'text-cyan-600' : 'text-slate-700'}`}>
+                        <span className={`block text-[8px] tracking-widest mb-1 ${active ? 'text-cyan-400 font-bold' : 'text-slate-500'}`}>
                           {label}
                         </span>
-                        <span className={`font-black text-sm tabular-nums ${active ? 'text-cyan-300' : 'text-slate-400'}`}>
+                        {/* ปรับสีตัวเลขตรงนี้ให้ทึบขึ้น */}
+                        <span className={`font-black text-sm tabular-nums ${active ? 'text-cyan-400' : 'text-white'}`}>
                           {value.toLocaleString()}
                         </span>
-                        <span className={`text-[9px] ml-0.5 ${active ? 'text-cyan-600' : 'text-slate-700'}`}>CR</span>
+                        <span className={`text-[9px] ml-0.5 ${active ? 'text-cyan-600' : 'text-slate-500'}`}>CR</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
+
               {/* Custom input */}
               <div>
                 <p className="font-mono text-[9px] text-slate-600 uppercase tracking-[0.2em] mb-2">
-                  // CUSTOM AMOUNT
+                 
                 </p>
                 <div className="relative">
                   <input
@@ -364,17 +365,17 @@ function Topup() {
               </div>
 
               {/* Proceed button */}
-              <button
-                onClick={handleProceed}
-                disabled={amount <= 0}
-                className={`relative overflow-hidden btn-bar w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] ${
-                  amount > 0
-                    ? 'pulse-glow bg-cyan-500/20 border border-cyan-500/45 text-cyan-300 hover:bg-cyan-500/30 cursor-pointer'
-                    : 'bg-white/5 border border-white/8 text-white/20 cursor-not-allowed'
-                }`}
-              >
-                {amount > 0 ? 'PROCEED TO PAYMENT →' : 'SELECT AMOUNT TO CONTINUE'}
-              </button>
+             <button
+  onClick={handleProceed}
+  disabled={amount <= 0}
+  className={`relative overflow-hidden btn-bar w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest transition-all active:scale-[0.98] ${
+    amount > 0
+      ? 'pulse-glow bg-cyan-500/20 border border-cyan-500/45 !text-white hover:bg-cyan-500/30 cursor-pointer' // ✅ เติม ! หน้า text-white
+      : 'bg-white/5 border border-white/8 !text-white/30 cursor-not-allowed' // ✅ เติม ! หน้า text-white/30
+  }`}
+>
+  {amount > 0 ? 'PROCEED TO PAYMENT →' : 'SELECT AMOUNT TO CONTINUE'}
+</button>
             </div>
           )}
 

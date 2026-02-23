@@ -40,7 +40,7 @@ function WeaponDetail() {
         </div>
         <div className="md:w-1/2 flex flex-col justify-center text-left">
           {/* ปรับสีปุ่ม Return ให้สว่างขึ้น */}
-          <button onClick={() => navigate(-1)} className="text-cyan-400 text-xs font-bold mb-4 uppercase tracking-widest hover:text-cyan-200 transition-colors">← Return to Armory</button>
+          <button onClick={() => navigate(-1)} className="!text-white text-xs font-bold mb-4 uppercase tracking-widest hover:text-cyan-300 transition-colors">← Return to Armory</button>
           <h1 className="text-6xl font-black italic text-white mb-4 uppercase tracking-tighter leading-none">{weapon.name}</h1>
           
           {/* ✅ เปลี่ยนจาก slate-400 เป็น slate-300 เพื่อให้อ่านออกบนพื้นหลังดำ */}

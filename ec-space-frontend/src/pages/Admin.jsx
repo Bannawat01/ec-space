@@ -1,17 +1,17 @@
-import { useEffect, useState } from 'react';
-import { ChevronDown, Hash, RefreshCw, Trash2 } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { ChevronDown, Hash, RefreshCw, Trash2, Check, DollarSign, Upload, Image as ImageIcon } from 'lucide-react';
 import api from '../services/api';
 import categories from '../constants/categories';
 
-// ── Category badge color map ──────────────────────────────────────────────────
+// ── Category badge color map ──────────────────────────────────
 const BADGE_CLS = {
-  Rifle:    'bg-amber-500/15  text-amber-400  border-amber-500/30',
-  Pistol:   'bg-blue-500/15   text-blue-400   border-blue-500/30',
-  Sniper:   'bg-purple-500/15 text-purple-400 border-purple-500/30',
-  Shotgun:  'bg-red-500/15    text-red-400    border-red-500/30',
-  SMG:      'bg-green-500/15  text-green-400  border-green-500/30',
-  Melee:    'bg-cyan-500/15   text-cyan-400   border-cyan-500/30',
-  Standard: 'bg-slate-500/15  text-slate-400  border-slate-500/30',
+  Plasma: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
+  'Kinetic / Railgun': 'bg-amber-500/15 text-amber-400 border-amber-500/30',
+  Laser: 'bg-red-500/15 text-red-400 border-red-500/30',
+  Sonic: 'bg-blue-500/15 text-blue-400 border-blue-500/30',
+  Sniper: 'bg-purple-500/15 text-purple-400 border-purple-500/30',
+  Melee: 'bg-orange-500/15 text-orange-400 border-orange-500/30',
+  Standard: 'bg-slate-500/15 text-slate-400 border-slate-500/30',
 };
 
 function CategoryBadge({ type }) {
@@ -23,38 +23,65 @@ function CategoryBadge({ type }) {
   );
 }
 
-// ── Status pill ───────────────────────────────────────────────────────────────
-const PILL_CLS = {
-  cyan:  'bg-cyan-950/60  border-cyan-500/20  text-cyan-400',
-  green: 'bg-green-950/60 border-green-500/20 text-green-400',
-  amber: 'bg-amber-950/60 border-amber-500/20 text-amber-400',
-};
+function TacticalDropdown({ value, onChange, options }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef(null);
 
-function StatusPill({ label, value, color = 'cyan' }) {
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border font-mono text-[11px] ${PILL_CLS[color]}`}>
-      <span className="text-white/30 uppercase tracking-widest">{label}</span>
-      <span className="font-black">{value}</span>
+    <div className="relative w-full" ref={containerRef} style={{ zIndex: isOpen ? 1000 : 1 }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        style={{ backgroundColor: '#000000', color: '#ffffff', opacity: 1 }}
+        className="flex items-center justify-between w-full border-2 border-cyan-500 rounded-lg px-3 py-2.5 text-[11px] outline-none transition-all shadow-[0_0_15px_rgba(6,182,212,0.4)] font-black"
+      >
+        <span className="truncate uppercase tracking-[0.12em]">{value || "SELECT"}</span>
+        <ChevronDown className={`w-4 h-4 text-cyan-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div 
+          style={{ backgroundColor: '#000000', opacity: 1, border: '2px solid #22d3ee' }} 
+          className="absolute z-[1001] top-full mt-2 w-full shadow-[0_20px_50px_rgba(0,0,0,1)] rounded-xl overflow-hidden"
+        >
+          <div className="max-h-[200px] overflow-y-auto custom-scrollbar">
+            {options.filter(c => c !== 'All').map(opt => (
+              <div
+                key={opt}
+                onClick={() => { onChange(opt); setIsOpen(false); }}
+                style={{ color: '#ffffff', backgroundColor: '#000000' }}
+                className={`px-4 py-3 text-[11px] cursor-pointer flex items-center justify-between border-b border-white/5 last:border-0 hover:bg-cyan-500/30 ${value === opt ? 'bg-cyan-500/40 font-black' : ''}`}
+              >
+                <span className="uppercase tracking-[0.15em] font-bold">{opt}</span>
+                {value === opt && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-// ── Labelled form field ───────────────────────────────────────────────────────
+const INPUT_STYLE = 'bg-[#000000] border-2 border-cyan-500 shadow-[0_0_10px_rgba(6,182,212,0.3)] focus:border-cyan-400 focus:shadow-[0_0_15px_rgba(34,211,238,0.6)] rounded-lg px-3 py-2 text-sm text-white outline-none transition-all w-full font-bold placeholder:text-white/40';
+
 function FormField({ label, children }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="font-mono text-[9px] uppercase tracking-[0.18em] text-slate-600">
-        {label}
-      </label>
+      <label className="font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-400 font-black">{label}</label>
       {children}
     </div>
   );
 }
 
-const INPUT =
-  'bg-white/5 border border-white/10 focus:border-cyan-500/50 rounded-lg px-3 py-2 text-sm text-white outline-none transition-colors w-full placeholder:text-white/20';
-
-// ── Weapon row ────────────────────────────────────────────────────────────────
 function WeaponRow({ weapon, onEdit, onUpdate, onDelete }) {
   const [localType, setLocalType] = useState(weapon.type);
   const [dirty, setDirty] = useState(false);
@@ -66,457 +93,234 @@ function WeaponRow({ weapon, onEdit, onUpdate, onDelete }) {
   };
 
   return (
-    <div
-      className={`group grid grid-cols-[88px_minmax(260px,1.8fr)_minmax(170px,0.95fr)_minmax(180px,0.95fr)_minmax(120px,0.6fr)_160px] items-start gap-5 px-5 py-4 rounded-xl border transition-all duration-200 ${
-        dirty
-          ? 'border-cyan-400/55 bg-cyan-950/20 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.3),0_0_18px_rgba(34,211,238,0.12)]'
-          : 'border-white/10 bg-black/35 hover:border-cyan-500/40 hover:bg-cyan-950/15 hover:backdrop-blur-md'
-      }`}
-    >
-
-      {/* Visual */}
+    <div className={`group grid grid-cols-[88px_minmax(260px,1.8fr)_minmax(170px,0.95fr)_minmax(180px,0.95fr)_minmax(150px,0.7fr)_160px] items-start gap-5 px-5 py-4 rounded-xl border-2 transition-all duration-300 ${dirty ? 'border-cyan-400 bg-black shadow-[0_0_20px_rgba(34,211,238,0.2)]' : 'border-white/10 bg-[#080808] hover:border-cyan-500/40'}`}>
       <div className="pt-0.5">
-        <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-white/5 group-hover:border-cyan-500/25 transition-all duration-300">
-          <img
-            src={`http://localhost:8080/${weapon.image_url}`}
-            className="w-full h-full object-cover"
-            alt={weapon.name}
-          />
+        <div className="relative w-20 h-14 rounded-lg overflow-hidden border border-white/10">
+          <img src={`http://localhost:8080/${weapon.image_url}`} className="w-full h-full object-cover" alt={weapon.name} />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </div>
       </div>
 
-      {/* Designation + description */}
       <div className="min-w-0">
-        <input
-          defaultValue={weapon.name}
-          onChange={e => field('name', e.target.value)}
-          className="bg-transparent border-b border-white/10 focus:border-cyan-500/60 py-0.5 w-full mb-2 outline-none text-white font-black text-[18px] tracking-wide transition-colors"
-        />
-        <textarea
-          defaultValue={weapon.description}
-          onChange={e => field('description', e.target.value)}
-          rows={2}
-          className="bg-black/20 border border-white/10 focus:border-cyan-500/35 rounded px-2 py-1 w-full text-[11px] text-slate-400 outline-none resize-none transition-colors"
-        />
+        <input defaultValue={weapon.name} onChange={e => field('name', e.target.value)} className="bg-transparent border-b-2 border-white/10 focus:border-cyan-400 py-0.5 w-full mb-2 outline-none text-white font-black text-[18px] tracking-wide" />
+        <textarea defaultValue={weapon.description} onChange={e => field('description', e.target.value)} rows={2} className="bg-black/40 border border-white/10 rounded px-2 py-1 w-full text-[11px] text-white outline-none resize-none" />
       </div>
 
-      {/* Category */}
       <div className="flex flex-col gap-2 pt-0.5">
         <CategoryBadge type={localType} />
-        <div className="relative w-full max-w-[150px]">
-          <select
-            defaultValue={weapon.type}
-            onChange={e => field('type', e.target.value)}
-            className="tactical-select appearance-none !bg-slate-900 !text-cyan-100 border !border-cyan-500/50 focus:!border-cyan-300 focus:shadow-[0_0_0_2px_rgba(34,211,238,0.25),0_0_14px_rgba(34,211,238,0.25)] rounded px-2 pr-8 py-1.5 text-[11px] outline-none w-full transition-all"
-          >
-            {categories.filter(c => c !== 'All').map(c => (
-              <option
-                key={c}
-                value={c}
-                className="tactical-option !bg-slate-950 !text-cyan-100"
-                style={{ backgroundColor: '#0f172a', color: '#cffafe' }}
-              >
-                {c}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-cyan-300/80" />
-        </div>
+        <TacticalDropdown value={localType} onChange={(val) => field('type', val)} options={categories} />
       </div>
 
-      {/* Inventory */}
       <div className="pt-0.5">
-        <p className="font-mono text-[10px] text-cyan-300/80 mb-1 uppercase tracking-wider">
-          Cur Qty: <span className={`font-black ${weapon.stock < 5 ? 'text-red-400' : 'text-white'}`}>{weapon.stock}</span>
-        </p>
-        <label className="font-mono text-[9px] uppercase tracking-[0.15em] text-cyan-300/70 mb-1.5 block">
-          New Qty
-        </label>
-        <div className="relative w-28">
-          <Hash className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-cyan-300/80 pointer-events-none" />
-          <input
-            type="number"
-            placeholder="0"
-            onChange={e => field('stock', e.target.value)}
-            className="bg-black/60 border border-white/15 focus:border-cyan-500/55 rounded px-2 py-1.5 pl-8 w-full text-xs outline-none text-white placeholder:text-cyan-200/40 tabular-nums transition-colors"
-          />
+        <p className="font-mono text-[9px] text-cyan-400 mb-1 uppercase tracking-widest font-black">Quantity</p>
+        <div className="relative">
+          <Hash className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-cyan-400" />
+          <input type="number" placeholder={weapon.stock} onChange={e => field('stock', e.target.value)} className="bg-black border-2 border-cyan-500/50 focus:border-cyan-400 rounded-lg px-2 py-2 pl-8 w-full text-xs text-white font-black shadow-[0_0_5px_rgba(6,182,212,0.2)]" />
         </div>
       </div>
 
-      {/* Price */}
-      <div className="pt-1">
-        <p className="font-mono font-black text-cyan-300 text-lg leading-none tabular-nums">
-          {Number(weapon.price).toLocaleString()}
-        </p>
-        <p className="font-mono text-[10px] text-cyan-400/80 tracking-[0.22em] mt-1">CR</p>
+      <div className="pt-0.5">
+        <p className="font-mono text-[9px] text-cyan-400 mb-1 uppercase tracking-widest font-black">Price (CR)</p>
+        <div className="relative">
+          <DollarSign className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-cyan-400" />
+          <input type="number" defaultValue={weapon.price} onChange={e => field('price', e.target.value)} className="bg-black border-2 border-cyan-500/50 focus:border-cyan-400 rounded-lg px-2 py-2 pl-7 w-full text-sm font-black text-white tabular-nums outline-none shadow-[0_0_5px_rgba(6,182,212,0.2)]" />
+        </div>
       </div>
 
-      {/* Actions */}
-      <div className="w-full min-w-[160px] pt-0.5">
-        <div className="flex flex-col gap-2 items-stretch">
-          <button
-            onClick={() => onUpdate(weapon.id)}
-            disabled={!dirty}
-            className={`inline-flex items-center justify-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border transition-all ${
-              dirty
-                ? '!bg-cyan-500/20 !text-cyan-100 !border-cyan-300/70 hover:!bg-cyan-400/35 hover:!text-white hover:shadow-[0_0_18px_rgba(34,211,238,0.55)] cursor-pointer'
-                : '!bg-slate-800/75 !text-slate-300/70 !border-slate-600/70 cursor-not-allowed'
-            }`}
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Sync Unit
-          </button>
-          <button
-            onClick={() => onDelete(weapon.id, weapon.name)}
-            className="inline-flex items-center justify-center gap-2 px-3 py-2 text-[10px] font-black uppercase tracking-wider rounded-lg border !border-red-400/60 !bg-red-500/20 !text-red-100 hover:!bg-red-500/85 hover:!text-white hover:!border-red-300 transition-all shadow-[0_0_0_1px_rgba(248,113,113,0.25)] hover:shadow-[0_0_16px_rgba(248,113,113,0.45)]"
-          >
-            <Trash2 className="w-3.5 h-3.5" />
-            Danger Purge
-          </button>
-        </div>
+      <div className="w-full pt-0.5 space-y-2">
+        <button 
+          onClick={() => onUpdate(weapon.id)} 
+          disabled={!dirty} 
+          style={dirty ? { backgroundColor: '#06b6d4', color: '#ffffff', opacity: 1 } : { backgroundColor: 'transparent', color: 'rgba(255,255,255,0.2)', opacity: 0.4 }}
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase rounded-lg border-2 border-cyan-300 shadow-[0_0_20px_#06b6d4] transition-all"
+        >
+          <RefreshCw className="w-3.5 h-3.5" /> SYNC DATA
+        </button>
+        <button 
+          onClick={() => onDelete(weapon.id, weapon.name)} 
+          style={{ backgroundColor: '#ef4444', color: '#ffffff', opacity: 1 }}
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-[10px] font-black uppercase rounded-lg border-2 border-red-400 shadow-[0_0_15px_rgba(239,68,68,0.5)] transition-all"
+        >
+          <Trash2 className="w-3.5 h-3.5" /> PURGE
+        </button>
       </div>
     </div>
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 function Admin() {
-  const [weapons, setWeapons]   = useState([]);
+  const [weapons, setWeapons] = useState([]);
   const [editData, setEditData] = useState({});
   const [panelOpen, setPanelOpen] = useState(false);
-  const [ping]  = useState(() => Math.floor(Math.random() * 28) + 8);
-  const [newWeapon, setNewWeapon] = useState({
-    name: '', type: 'Standard', price: '', stock: '', description: '', image: null,
-  });
+  const [newWeapon, setNewWeapon] = useState({ name: '', type: 'Standard', price: '', stock: '', description: '', image: null });
 
   const username = localStorage.getItem('username');
-
   const fetchWeapons = async () => {
     try {
       const res = await api.get('/weapons');
       setWeapons(res.data);
-    } catch (err) {
-      console.error('ดึงข้อมูลไม่สำเร็จ:', err);
-    }
+    } catch (err) { console.error('Fetch error:', err); }
   };
 
   useEffect(() => { fetchWeapons(); }, []);
 
-  const handleAddWeapon = async (e) => {
-    e.preventDefault();
-    const fd = new FormData();
-    Object.entries(newWeapon).forEach(([k, v]) => v && fd.append(k, v));
-    try {
-      const token = localStorage.getItem('token');
-      await api.post('/admin/weapons', fd, {
-        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
-      });
-      alert('เพิ่มสำเร็จ!');
-      setNewWeapon({ name: '', type: 'Standard', price: '', stock: '', description: '', image: null });
-      fetchWeapons();
-    } catch (err) {
-      alert('Error: ' + (err.response?.data?.error || 'Error'));
-    }
-  };
-
   const handleUpdateWeapon = async (id) => {
     const data = editData[id];
-    if (!data || !Object.keys(data).length) return alert('ไม่มีข้อมูลการเปลี่ยนแปลง');
+    if (!data) return;
     const fd = new FormData();
     Object.entries(data).forEach(([k, v]) => fd.append(k, v));
     try {
       const token = localStorage.getItem('token');
-      await api.patch(`/admin/weapons/${id}`, fd, {
-        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` },
-      });
-      alert('อัปเดตสำเร็จ!');
+      await api.patch(`/admin/weapons/${id}`, fd, { headers: { Authorization: `Bearer ${token}` } });
+      alert('SYSTEM UPDATED');
+      setEditData(prev => { const n = {...prev}; delete n[id]; return n; });
       fetchWeapons();
-    } catch (err) {
-      alert('Error: ' + (err.response?.data?.error || 'Error'));
-    }
+    } catch (err) { alert('Update failed'); }
+  };
+
+  const handleAddWeapon = async (e) => {
+    e.preventDefault();
+    const fd = new FormData();
+    // เพิ่มข้อมูลลงใน FormData รวมถึงไฟล์รูปภาพ
+    Object.entries(newWeapon).forEach(([k, v]) => {
+      if (v !== null) fd.append(k, v);
+    });
+
+    try {
+      const token = localStorage.getItem('token');
+      await api.post('/admin/weapons', fd, { 
+        headers: { 
+          'Content-Type': 'multipart/form-data', 
+          Authorization: `Bearer ${token}` 
+        } 
+      });
+      alert('DEPLOYMENT COMPLETE');
+      setNewWeapon({ name: '', type: 'Standard', price: '', stock: '', description: '', image: null });
+      setPanelOpen(false);
+      fetchWeapons();
+    } catch (err) { alert('Deployment failed'); }
   };
 
   const handleDelete = async (id, name) => {
-    if (!window.confirm(`PURGE: ${name}?`)) return;
+    if (!window.confirm(`PURGE ${name}?`)) return;
     try {
       const token = localStorage.getItem('token');
       await api.delete(`/admin/weapons/${id}`, { headers: { Authorization: `Bearer ${token}` } });
       fetchWeapons();
-    } catch (err) {
-      alert('ลบไม่สำเร็จ: ' + (err.response?.data?.error || err.message));
-    }
+    } catch (err) { alert('Purge failed'); }
   };
 
-  const handleEditField = (id, field, value) => {
-    setEditData(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
-  };
-
-  // ── Access denied ─────────────────────────────────────────────────────────
-  if (username?.toLowerCase() !== 'admin') {
-    return (
-      <div className="flex items-center justify-center min-h-[80vh] text-white">
-        <div className="p-10 bg-red-500/10 backdrop-blur-xl border border-red-500/20 rounded-2xl text-center">
-          <h1 className="text-3xl font-black mb-2 tracking-tight">⚠ ACCESS DENIED</h1>
-          <p className="text-white/40 font-mono text-xs tracking-widest">
-            COMMANDER "admin" CREDENTIALS REQUIRED
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const totalStock = weapons.reduce((s, w) => s + (w.stock || 0), 0);
+  if (username?.toLowerCase() !== 'admin') return <div className="text-white text-center pt-40 font-black tracking-tighter text-4xl">ACCESS DENIED</div>;
 
   return (
-    <div
-      className="min-h-screen text-white pt-16"
-      style={{
-        backgroundImage:
-          'linear-gradient(rgba(6,182,212,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,0.025) 1px, transparent 1px)',
-        backgroundSize: '44px 44px',
-      }}
-    >
+    <div className="min-h-screen text-white pt-24 bg-transparent overflow-x-hidden">
       <style>{`
-        .tactical-select {
-          background-color: #0f172a !important;
-          color: #cffafe !important;
-        }
-        .tactical-select option,
-        .tactical-option {
-          background-color: #0f172a !important;
-          color: #cffafe !important;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 10px; }
       `}</style>
-      {/* ══ Top Command Bar ════════════════════════════════════════════════════ */}
-      <div className="sticky top-16 z-40 flex items-center justify-between px-8 py-3 bg-black/80 backdrop-blur-xl border-b border-cyan-500/15 shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
 
-        {/* Left: branding */}
-        <div className="flex items-center gap-5">
-          <div>
-            <p className="font-mono text-[8px] text-cyan-500/40 tracking-[0.25em] uppercase">
-              // Tactical Command
-            </p>
-            <h1 className="text-lg font-black tracking-tighter leading-none mt-0.5">
-              SYSTEM <span className="text-cyan-400">CORE</span>
-            </h1>
-          </div>
-
-          <div className="w-px h-8 bg-white/8" />
-
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            <span className="font-mono text-[10px] text-slate-500 tracking-widest">UPLINK ACTIVE</span>
-          </div>
-        </div>
-
-        {/* Right: status pills + deploy toggle */}
+      <div className="fixed top-16 left-0 w-full z-[60] flex items-center justify-between px-10 py-4 bg-black border-b-2 border-cyan-500/30 shadow-[0_0_25px_rgba(6,182,212,0.5)]">
         <div className="flex items-center gap-2">
-          <StatusPill label="Units"  value={weapons.length}             color="cyan"  />
-          <StatusPill label="Stock"  value={totalStock.toLocaleString()} color="green" />
-          <StatusPill label="Ping"   value={`${ping}ms`}                color="amber" />
+          <div className="w-3 h-3 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]"></div>
+          <h1 className="text-xl font-black tracking-[0.2em] text-white uppercase">ADMIN CENTER</h1>
+        </div>
+        
+        <button 
+          onClick={() => setPanelOpen(true)} 
+          style={{ backgroundColor: '#06b6d4', color: '#ffffff', opacity: 1 }}
+          className="px-6 py-2.5 rounded-lg border-2 border-cyan-300 text-xs font-black uppercase tracking-widest shadow-[0_0_25px_rgba(34,211,238,0.7)] transition-all active:scale-95"
+        >
+          + Deploy New Armament
+        </button>
+      </div>
 
-          <div className="w-px h-6 bg-white/8 mx-1" />
-
-          <button
-            onClick={() => setPanelOpen(p => !p)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-[11px] font-black uppercase tracking-wider transition-all duration-200 ${
-              panelOpen
-                ? '!bg-cyan-500/25 !border-cyan-400/70 !text-cyan-100 shadow-[0_0_14px_rgba(34,211,238,0.35)]'
-                : '!bg-slate-800/80 !border-slate-500/70 !text-slate-100 hover:!border-cyan-400/50 hover:!text-cyan-200 hover:!bg-slate-700/80'
-            }`}
-          >
-            <span className="text-sm leading-none">{panelOpen ? '✕' : '+'}</span>
-            Deploy New
-          </button>
+      <div className="px-10 pb-20 mt-10">
+        <div className="rounded-2xl border-2 border-cyan-500/20 bg-black overflow-hidden shadow-2xl">
+          <div className="overflow-x-auto">
+            <div className="min-w-[1100px] p-6 space-y-4">
+              {weapons.map(w => (
+                <WeaponRow key={w.id} weapon={w} onEdit={(id, f, v) => setEditData(p => ({...p, [id]: {...p[id], [f]: v}}))} onUpdate={handleUpdateWeapon} onDelete={handleDelete} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ══ Layout: Grid + Side Panel ══════════════════════════════════════════ */}
-      <div className="flex">
-
-        {/* ── Weapon Data Grid ──────────────────────────────────────────────── */}
-        <div
-          className="flex-1 px-8 pb-8 pt-14 transition-all duration-500 min-w-0"
-          style={{ marginRight: panelOpen ? 360 : 0 }}
+      <div className={`fixed top-0 right-0 h-full w-[450px] z-[200] transition-all duration-500 ease-in-out ${panelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        {panelOpen && <div className="fixed inset-0 bg-black/90 -z-10" onClick={() => setPanelOpen(false)}></div>}
+        
+        <div 
+          style={{ backgroundColor: '#000000', opacity: 1 }} 
+          className="h-full border-l-2 border-cyan-400 flex flex-col p-8 shadow-[-20px_0_100px_rgba(0,0,0,1)] overflow-y-auto custom-scrollbar"
         >
-          <p className="font-mono text-[9px] text-slate-500 uppercase tracking-[0.22em] mb-5">
-            // ARMAMENT_REGISTRY — {weapons.length} UNIT{weapons.length !== 1 ? 'S' : ''} ON RECORD
-          </p>
-
-          <div className="rounded-2xl border border-cyan-500/15 bg-black/35 backdrop-blur-md overflow-hidden shadow-[0_10px_28px_rgba(0,0,0,0.35)]">
-            <div className="overflow-x-auto">
-              <div className="min-w-[1080px]">
-                <div className="grid grid-cols-[88px_minmax(260px,1.8fr)_minmax(170px,0.95fr)_minmax(180px,0.95fr)_minmax(120px,0.6fr)_160px] gap-5 px-5 py-3 bg-cyan-500/[0.03] border-b border-cyan-500/15">
-                  {['Visual', 'Designation', 'Category', 'Inventory', 'Price', 'Actions'].map(h => (
-                    <p
-                      key={h}
-                      className="font-mono text-[9px] uppercase tracking-[0.22em] text-slate-400"
-                    >
-                      {h}
-                    </p>
-                  ))}
-                </div>
-
-                <div className="p-3 space-y-2">
-                  {weapons.map(w => (
-                    <WeaponRow
-                      key={w.id}
-                      weapon={w}
-                      onEdit={handleEditField}
-                      onUpdate={handleUpdateWeapon}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </div>
-              </div>
+          
+          <div className="flex justify-between items-center mb-10 pt-10 border-b-2 border-cyan-500/30 pb-6">
+            <h2 className="text-2xl font-black text-white tracking-[0.1em] uppercase">
+              NEW <span className="text-cyan-400">DEPLOYMENT</span>
+            </h2>
+            <button onClick={() => setPanelOpen(false)} className="text-white hover:text-cyan-400 text-3xl font-black transition-colors">✕</button>
+          </div>
+          
+          <form onSubmit={handleAddWeapon} className="flex flex-col gap-6">
+            <FormField label="Designation">
+              <input type="text" className={INPUT_STYLE} value={newWeapon.name} onChange={e => setNewWeapon({...newWeapon, name: e.target.value})} placeholder="UNIT NAME..." required />
+            </FormField>
+            
+            <FormField label="Weapon Class">
+              <TacticalDropdown value={newWeapon.type} onChange={(val) => setNewWeapon({...newWeapon, type: val})} options={categories} />
+            </FormField>
+            
+            <div className="grid grid-cols-2 gap-6">
+              <FormField label="Price (CR)">
+                <input type="number" className={INPUT_STYLE} value={newWeapon.price} onChange={e => setNewWeapon({...newWeapon, price: e.target.value})} placeholder="0.00" required />
+              </FormField>
+              <FormField label="Initial Stock">
+                <input type="number" className={INPUT_STYLE} value={newWeapon.stock} onChange={e => setNewWeapon({...newWeapon, stock: e.target.value})} placeholder="0" required />
+              </FormField>
             </div>
+            
+            <FormField label="System Specs">
+              <textarea className={`${INPUT_STYLE} h-32 resize-none`} value={newWeapon.description} onChange={e => setNewWeapon({...newWeapon, description: e.target.value})} placeholder="TECHNICAL DETAILS..." />
+            </FormField>
 
-            {weapons.length === 0 && (
-              <div className="py-20 text-center">
-                <p className="font-mono text-xs text-slate-700 uppercase tracking-widest">
-                  [ NO UNITS IN REGISTRY ]
-                </p>
+            {/* 📸 ส่วนของการอัปโหลดรูปภาพอาวุธ */}
+            <FormField label="Visual Data (Blueprint)">
+              <div className="relative group">
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={(e) => setNewWeapon({...newWeapon, image: e.target.files[0]})}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                />
+                <div className={`flex items-center justify-center gap-3 w-full border-2 border-dashed rounded-lg p-4 transition-all ${newWeapon.image ? 'border-cyan-400 bg-cyan-400/10' : 'border-white/20 group-hover:border-cyan-500 group-hover:bg-white/5'}`}>
+                  {newWeapon.image ? (
+                    <>
+                      <Check className="w-5 h-5 text-cyan-400" />
+                      <span className="text-xs text-white font-bold truncate">{newWeapon.image.name}</span>
+                    </>
+                  ) : (
+                    <>
+                      <ImageIcon className="w-5 h-5 text-white/40 group-hover:text-cyan-400" />
+                      <span className="text-xs text-white/40 group-hover:text-white font-black uppercase tracking-widest">Select Image Asset</span>
+                    </>
+                  )}
+                </div>
               </div>
-            )}
+            </FormField>
+            
+            <button 
+              type="submit" 
+              style={{ backgroundColor: '#06b6d4', color: '#ffffff', opacity: 1 }}
+              className="py-5 mt-4 rounded-xl border-2 border-cyan-300 font-black uppercase tracking-[0.25em] text-sm shadow-[0_0_40px_rgba(34,211,238,0.8)] transition-all active:scale-95 hover:shadow-[0_0_60px_rgba(34,211,238,1)]"
+            >
+              Confirm Initial Deployment
+            </button>
+          </form>
+          
+          <div className="mt-10 pt-6 border-t border-white/5">
+            <p className="text-[10px] font-mono text-cyan-500/50 uppercase tracking-[0.3em] text-center">Awaiting command input...</p>
           </div>
         </div>
-
-        {/* ── Collapsible Deploy Panel ───────────────────────────────────────── */}
-        <div
-          className="fixed top-0 right-0 h-full w-[360px] z-30 transition-transform duration-500 ease-in-out"
-          style={{ transform: panelOpen ? 'translateX(0)' : 'translateX(100%)' }}
-        >
-          {/* Glassmorphism panel */}
-          <div className="h-full bg-black/75 backdrop-blur-2xl border-l border-white/5 flex flex-col overflow-y-auto">
-
-            {/* Panel header */}
-            <div className="px-6 pt-[72px] pb-5 border-b border-white/5 flex-shrink-0">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-mono text-[8px] text-cyan-500/40 tracking-[0.2em] uppercase mb-1">
-                    // new_unit_deployment
-                  </p>
-                  <h2 className="text-base font-black tracking-tight">
-                    DEPLOY <span className="text-cyan-400">ARMAMENT</span>
-                  </h2>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setPanelOpen(false)}
-                  className="!bg-slate-800/80 !border !border-slate-500/60 !text-slate-100 hover:!bg-slate-700/80 hover:!border-cyan-400/50 hover:!text-cyan-200 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleAddWeapon} className="p-6 flex flex-col gap-5 flex-1">
-              <FormField label="Designation (Name)">
-                <input
-                  type="text"
-                  className={INPUT}
-                  placeholder="e.g. Plasma Rifle MkIV"
-                  value={newWeapon.name}
-                  onChange={e => setNewWeapon({ ...newWeapon, name: e.target.value })}
-                  required
-                />
-              </FormField>
-
-              <FormField label="Category">
-                <div className="flex flex-col gap-2">
-                  <CategoryBadge type={newWeapon.type} />
-                  <div className="relative">
-                    <select
-                      className={`${INPUT} tactical-select appearance-none h-11 text-sm pr-9 !bg-slate-900 !text-cyan-100 !border-cyan-500/50 focus:!border-cyan-300 focus:shadow-[0_0_0_2px_rgba(34,211,238,0.25),0_0_16px_rgba(34,211,238,0.3)]`}
-                      value={newWeapon.type}
-                      onChange={e => setNewWeapon({ ...newWeapon, type: e.target.value })}
-                    >
-                      {categories.filter(c => c !== 'All').map(c => (
-                        <option
-                          key={c}
-                          value={c}
-                          className="tactical-option !bg-slate-950 !text-cyan-100"
-                          style={{ backgroundColor: '#0f172a', color: '#cffafe' }}
-                        >
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-cyan-300/85" />
-                  </div>
-                </div>
-              </FormField>
-
-              <div className="grid grid-cols-2 gap-3">
-                <FormField label="Price (CR)">
-                  <input
-                    type="number"
-                    className={INPUT}
-                    placeholder="0"
-                    value={newWeapon.price}
-                    onChange={e => setNewWeapon({ ...newWeapon, price: e.target.value })}
-                    required
-                  />
-                </FormField>
-                <FormField label="Stock Units">
-                  <input
-                    type="number"
-                    className={INPUT}
-                    placeholder="0"
-                    value={newWeapon.stock}
-                    onChange={e => setNewWeapon({ ...newWeapon, stock: e.target.value })}
-                    required
-                  />
-                </FormField>
-              </div>
-
-              <FormField label="Tactical Description">
-                <textarea
-                  className={`${INPUT} h-20 resize-none`}
-                  placeholder="Field notes, combat specs..."
-                  value={newWeapon.description}
-                  onChange={e => setNewWeapon({ ...newWeapon, description: e.target.value })}
-                />
-              </FormField>
-
-              <FormField label="Weapon Visual">
-                <label className="flex items-center gap-3 px-3 py-2.5 bg-white/5 border border-white/10 hover:border-cyan-500/40 rounded-lg cursor-pointer transition-colors">
-                  <span className="text-cyan-500 text-base leading-none">⬆</span>
-                  <span className="text-xs text-slate-500 truncate flex-1">
-                    {newWeapon.image ? newWeapon.image.name : 'Select image file...'}
-                  </span>
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={e => setNewWeapon({ ...newWeapon, image: e.target.files[0] })}
-                    required
-                  />
-                </label>
-              </FormField>
-
-              {/* Divider */}
-              <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-white/5" />
-                <span className="font-mono text-[8px] text-slate-700 tracking-widest uppercase">
-                  confirm deploy
-                </span>
-                <div className="flex-1 h-px bg-white/5" />
-              </div>
-
-              <button
-                type="submit"
-                className="py-3 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 font-black text-sm uppercase tracking-widest hover:bg-cyan-500/25 hover:border-cyan-500/60 transition-all active:scale-95"
-              >
-                Deploy Armament
-              </button>
-            </form>
-          </div>
-        </div>
-
       </div>
     </div>
   );

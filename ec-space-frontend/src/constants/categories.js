@@ -1,3 +1,3 @@
-const categories = ['All','Rifle','Pistol','Sniper','Shotgun','SMG','Melee','Standard'];
+const categories = ['All','Plasma','Kinetic / Railgun','Laser','Sonic','Sniper','Melee','Standard'];
 
 export default categories;

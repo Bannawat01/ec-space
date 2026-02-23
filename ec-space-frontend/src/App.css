@@ -40,3 +40,8 @@
 .read-the-docs {
   color: #888;
 }
+/* บังคับสี Dropdown ของระบบให้เป็นธีมมืด */
+select option {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
