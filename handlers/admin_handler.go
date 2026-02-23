@@ -82,6 +82,15 @@ func UpdateWeapon(c *gin.Context) {
 
 // DeleteWeapon - Admin deletes weapon
 func DeleteWeapon(c *gin.Context) {
-	config.DB.Delete(&models.Weapon{}, c.Param("id"))
+	id := c.Param("id")
+
+	// ลบ records ที่อ้างอิง weapon นี้ก่อน
+	config.DB.Where("weapon_id = ?", id).Delete(&models.CartItem{})
+	config.DB.Where("weapon_id = ?", id).Delete(&models.OrderItem{})
+
+	if err := config.DB.Delete(&models.Weapon{}, id).Error; err != nil {
+		c.JSON(500, gin.H{"error": "ลบไม่สำเร็จ: " + err.Error()})
+		return
+	}
 	c.JSON(200, gin.H{"message": "ลบอาวุธเรียบร้อย"})
 }
