@@ -21,7 +21,7 @@ function App() {
           autoPlay loop muted 
           className="fixed top-0 left-0 w-full h-full object-cover -z-50"
         >
-          <source src="/space_bg.mp4" type="video/mp4" />
+          <source src="/space03.mp4" type="video/mp4" />
         </video>
 
         <div className="relative z-10">

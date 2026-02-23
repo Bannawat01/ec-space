@@ -33,9 +33,20 @@ function Topup() {
           placeholder="0" 
           onChange={(e) => setAmount(e.target.value)}
         />
-        <button onClick={handleTopup} className="w-full bg-cyan-600 hover:bg-cyan-500 text-white p-6 rounded-2xl font-black uppercase shadow-lg">
-          Confirm Transfer
-        </button>
+       <button 
+  onClick={handleTopup} 
+  style={{ 
+    color: 'white',               // ⚪ บังคับข้อความสีขาว
+    backgroundColor: 'transparent', // 🌑 พื้นหลังโปร่งใสเพื่อให้แสงเรืองแสงชัด
+    border: '4px solid #06b6d4',  // 🟦 กรอบหนา 4px สี Cyan
+    fontWeight: '900',            // 💪 ตัวหนาพิเศษ
+    boxShadow: '0 0 25px #06b6d4, inset 0 0 10px #06b6d4', // ✨ แสงเรืองแสงทั้งนอกและใน
+    cursor: 'pointer'
+  }}
+  className="w-full py-6 rounded-2xl text-3xl uppercase italic tracking-tighter transition-all hover:bg-cyan-500/20 active:scale-95 shadow-lg"
+>
+  Confirm Transfer
+</button>
       </div>
     </div>
   </div>

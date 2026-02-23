@@ -40,7 +40,7 @@ function Navbar() {
           
           {username && (
             <>
-              <Link to="/topup" className="text-cyan-400 hover:text-white border border-cyan-400/30 px-3 py-1 rounded">Top Up</Link>
+              <Link to="/topup" className="text-cyan-400 hover:text-white border border-cyan-400/30 px-3 py-1 rounded">Credits</Link>
               <Link to="/history" className="hover:text-cyan-400">History</Link>
               
               {/* ตรวจสอบถ้าชื่อเป็น admin ให้โชว์เมนู Admin */}
@@ -62,7 +62,26 @@ function Navbar() {
           {username ? (
             <div className="flex items-center gap-4 border-l border-white/20 pl-6">
               <Link to="/profile" className="text-white italic hover:text-cyan-400">{username}</Link>
-              <button onClick={() => { localStorage.clear(); navigate('/login'); window.location.reload(); }} className="text-white/40 hover:text-red-500 font-black">EXIT</button>
+             <button 
+  onClick={() => { 
+    localStorage.clear(); 
+    navigate('/login'); 
+    window.location.reload(); 
+  }} 
+  /* ✅ ใช้สีแดงนีออน (Red Neon) เพื่อความชัดเจนและดูเป็นเมนูระบบอันตราย */
+  style={{
+    color: '#ff4444',             // 🔴 ตัวหนังสือสีแดงสว่าง
+    backgroundColor: 'transparent',
+    border: '2px solid #ff4444',  // 🟥 กรอบสีแดง
+    padding: '8px 20px',          // เพิ่มพื้นที่ให้กดง่ายขึ้น
+    fontWeight: '900',            // ตัวหนาพิเศษ
+    boxShadow: '0 0 15px rgba(255, 68, 68, 0.4)', // ✨ แสงเรืองแสงสีแดง
+    cursor: 'pointer'
+  }}
+  className="rounded-xl font-black uppercase tracking-widest transition-all hover:bg-red-500/20 active:scale-95 text-xs"
+>
+  EXIT
+</button>
             </div>
           ) : (
             <Link to="/login" className="bg-cyan-500 px-6 py-2 rounded-full font-black hover:bg-cyan-400">Authorize</Link>

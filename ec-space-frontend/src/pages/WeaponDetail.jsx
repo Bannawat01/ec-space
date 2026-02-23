@@ -11,7 +11,6 @@ function WeaponDetail() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // ดึงข้อมูลอาวุธทั้งหมดแล้วมาหาตัวที่ตรงกับ ID
     api.get(`/weapons`)
       .then(res => {
         const found = res.data.find(w => String(w.id) === String(id));
@@ -40,71 +39,85 @@ function WeaponDetail() {
           />
         </div>
         <div className="md:w-1/2 flex flex-col justify-center text-left">
-          <button onClick={() => navigate(-1)} className="text-cyan-500 text-xs font-bold mb-4 uppercase tracking-widest hover:text-cyan-300 transition-colors">← Return to Armory</button>
+          {/* ปรับสีปุ่ม Return ให้สว่างขึ้น */}
+          <button onClick={() => navigate(-1)} className="text-cyan-400 text-xs font-bold mb-4 uppercase tracking-widest hover:text-cyan-200 transition-colors">← Return to Armory</button>
           <h1 className="text-6xl font-black italic text-white mb-4 uppercase tracking-tighter leading-none">{weapon.name}</h1>
-          <p className="text-slate-400 text-lg mb-8 leading-relaxed">{weapon.description}</p>
+          
+          {/* ✅ เปลี่ยนจาก slate-400 เป็น slate-300 เพื่อให้อ่านออกบนพื้นหลังดำ */}
+          <p className="text-slate-300 text-lg mb-8 leading-relaxed">{weapon.description}</p>
           
           <div className="bg-white/5 p-8 rounded-3xl border border-white/5 mb-8 flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <span className="text-5xl font-mono text-cyan-400 font-black tracking-tighter">
                 {weapon.price?.toLocaleString()} <span className="text-xl">CR</span>
               </span>
-              <div className="text-sm text-slate-500 mt-2 font-bold uppercase tracking-widest">Available Stock: {weapon.stock ?? 'N/A'}</div>
+              {/* ✅ เปลี่ยนจาก slate-500 เป็น slate-300 ให้เห็นสต็อกชัดๆ */}
+              <div className="text-sm text-slate-300 mt-2 font-bold uppercase tracking-widest">Available Stock: {weapon.stock ?? 'N/A'}</div>
             </div>
             
-            {/* ตัวปรับจำนวนในหน้า Detail */}
             <div className="flex items-center gap-4 bg-black/40 p-2 rounded-2xl border border-white/5">
-              <button
-                onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                className="bg-white/5 hover:bg-white/10 text-white w-12 h-12 rounded-xl font-bold transition-all"
-                disabled={quantity <= 1}
-              >−</button>
-              <div className="text-2xl font-mono text-white w-8 text-center">{quantity}</div>
-              <button
-                onClick={() => setQuantity(q => Math.min(weapon.stock || 99, q + 1))}
-                className="bg-white/5 hover:bg-white/10 text-white w-12 h-12 rounded-xl font-bold transition-all"
-              >+</button>
-            </div>
+  {/* ➖ ปุ่มลดจำนวน (Minus) */}
+  <button
+    onClick={() => setQuantity(q => Math.max(1, q - 1))}
+    disabled={quantity <= 1}
+    style={{ 
+      color: 'white',
+      backgroundColor: 'transparent',
+      border: '2px solid #06b6d4',
+      fontWeight: '900',
+      boxShadow: quantity <= 1 ? 'none' : '0 0 10px #06b6d4', // ปิดไฟถ้ากดไม่ได้
+      opacity: quantity <= 1 ? 0.3 : 1, // จางลงถ้ากดไม่ได้
+      cursor: quantity <= 1 ? 'not-allowed' : 'pointer'
+    }}
+    className="w-12 h-12 flex items-center justify-center rounded-xl text-3xl transition-all hover:bg-cyan-500/20"
+  >
+    −
+  </button>
+
+  <div className="text-2xl font-mono text-white w-8 text-center">{quantity}</div>
+
+  {/* ➕ ปุ่มเพิ่มจำนวน (Plus) */}
+  <button
+    onClick={() => setQuantity(q => Math.min(weapon.stock || 99, q + 1))}
+    style={{ 
+      color: 'white',
+      backgroundColor: 'transparent',
+      border: '2px solid #06b6d4',
+      fontWeight: '900',
+      boxShadow: '0 0 10px #06b6d4',
+      cursor: 'pointer'
+    }}
+    className="w-12 h-12 flex items-center justify-center rounded-xl text-3xl transition-all hover:bg-cyan-500/20"
+  >
+    +
+  </button>
+</div>
           </div>
 
-         
-<button
+         <button
   onClick={async (e) => {
-    // 🛡️ ป้องกันการกดซ้ำหรือเหตุการณ์ซ้อน
     e.preventDefault(); 
-    
-    console.log("Button Clicked for weapon:", weapon); // ตรวจสอบว่ากดโดนปุ่มไหม
-
-    if (!weapon || !weapon.id) {
-      alert("ไม่พบข้อมูลสินค้า (Missing ID)");
-      return;
-    }
-
+    if (!weapon || !weapon.id) return;
     const token = localStorage.getItem('token');
-    if (!token) {
-      alert('กรุณาเข้าสู่ระบบก่อน');
-      return navigate('/login');
-    }
+    if (!token) return navigate('/login');
 
     try {
-      // 🚀 บังคับส่งค่าที่เป็นตัวเลขแน่นอน
-      const finalId = Number(weapon.id);
-      const finalQty = Number(quantity) || 1;
-
-      console.log(`Sending to Cart -> ID: ${finalId}, Qty: ${finalQty}`);
-
-      await addToCart({ ...weapon, id: finalId }, finalQty);
-      
-      // ถ้ามาถึงตรงนี้แสดงว่า CartContext ทำงานสำเร็จแล้ว
-      console.log("Add to cart process finished"); 
+      await addToCart({ ...weapon, id: Number(weapon.id) }, Number(quantity));
+      alert("Added to cart!"); // เพิ่มแจ้งเตือนให้ผู้ใช้รู้ว่าสำเร็จ
     } catch (err) {
-      // ดัก Error ที่อาจเกิดขึ้นก่อนถึง API
-      console.error("Click Error:", err.message);
       alert(err.message);
     }
   }}
-  // 🎨 เพิ่ม Cursor Pointer และ Pointer Events เพื่อความมั่นใจว่ากดได้
-  className="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-6 rounded-2xl font-black uppercase shadow-lg transition-all active:scale-95 cursor-pointer relative z-50 pointer-events-auto"
+  /* ✅ ใช้ Inline Style เพื่อความสว่างชัดเจนและกรอบเรืองแสงแบบ Sci-fi */
+  style={{ 
+    color: 'white',               
+    backgroundColor: 'transparent', 
+    border: '4px solid #06b6d4',  
+    fontWeight: '900',            
+    boxShadow: '0 0 25px #06b6d4, inset 0 0 10px #06b6d4', 
+    cursor: 'pointer'
+  }}
+  className="w-full py-6 rounded-2xl text-3xl uppercase italic tracking-tighter transition-all hover:bg-cyan-500/20 active:scale-95 relative z-50 pointer-events-auto"
 >
   Add to Cart
 </button>
