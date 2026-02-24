@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
-// นำเข้า categories ที่คุณเพิ่งแก้ไข
-import categories from '../constants/categories'; 
+import categories from '../constants/categories';
+import { useLanguage } from '../contexts/LanguageContext';
 
 function WeaponList() {
   const [weapons, setWeapons] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('All'); // เก็บหมวดหมู่ที่เลือก
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const { t } = useLanguage();
 
   useEffect(() => {
     const fetchWeapons = async () => {
@@ -43,25 +44,25 @@ function WeaponList() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-6">
               <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Live Inventory Active</span>
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">{t('Live Inventory Active')}</span>
             </div>
 
             {/* Title */}
             <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter text-white mb-4 leading-none">
-              XENO <span className="text-cyan-400" style={{ textShadow: '0 0 40px rgba(6,182,212,0.6)' }}>ARMORY</span>
+              {t('XENO')} <span className="text-cyan-400" style={{ textShadow: '0 0 40px rgba(6,182,212,0.6)' }}>{t('ARMORY')}</span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-white/40 text-sm md:text-base font-medium tracking-widest uppercase mb-8 max-w-xl">
-              Advanced Weapons & Equipment for the Modern Operative
+              {t('Advanced Weapons & Equipment for the Modern Operative')}
             </p>
 
             {/* Stats row */}
             <div className="flex flex-wrap gap-6 md:gap-12 mb-8">
               {[
-                { label: 'Weapons', value: weapons.length > 0 ? weapons.length : '—' },
-                { label: 'Categories', value: '7' },
-                { label: 'In Stock', value: weapons.length > 0 ? weapons.filter(w => w.stock > 0).length : '—' },
+                { label: t('Weapons'), value: weapons.length > 0 ? weapons.length : '—' },
+                { label: t('Categories'), value: '7' },
+                { label: t('In Stock'), value: weapons.length > 0 ? weapons.filter(w => w.stock > 0).length : '—' },
               ].map((stat) => (
                 <div key={stat.label} className="flex flex-col">
                   <span className="text-2xl font-black text-cyan-400 font-mono italic">{stat.value}</span>
@@ -75,7 +76,7 @@ function WeaponList() {
               href="#inventory"
               className="px-8 py-3 rounded-full bg-cyan-500 hover:bg-cyan-400 text-white font-black uppercase tracking-widest text-xs transition-all shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:shadow-[0_0_50px_rgba(6,182,212,0.7)]"
             >
-              Browse Arsenal →
+              {t('Browse Arsenal')} →
             </a>
           </div>
 
@@ -98,7 +99,7 @@ function WeaponList() {
       {/* ===== INVENTORY SECTION ===== */}
       <div id="inventory" className="p-10 pt-10">
       <h1 className="text-4xl font-black mb-6 text-white italic uppercase tracking-tighter">
-        XENO ARMORY <span className="text-cyan-400">INVENTORY</span>
+        {t('XENO ARMORY')} <span className="text-cyan-400">{t('INVENTORY')}</span>
       </h1>
 
       {/* --- ส่วนแสดงหมวดหมู่ (Category Bar) --- */}
@@ -113,7 +114,7 @@ function WeaponList() {
                 : 'bg-white/5 !text-white/50 border border-white/10 hover:bg-white/10 hover:!text-white'
               }`}
           >
-            {cat}
+            {t(cat)}
           </button>
         ))}
       </div>
@@ -140,7 +141,7 @@ function WeaponList() {
                 >
                   {isOutOfStock && (
                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 w-full bg-red-600/90 text-white text-center py-2 font-black uppercase italic rotate-[-15deg] border-y-2 border-white shadow-[0_0_20px_rgba(255,0,0,0.5)]">
-                      OUT OF STOCK
+                      {t('OUT OF STOCK')}
                     </div>
                   )}
 
@@ -149,17 +150,17 @@ function WeaponList() {
                   <div className="p-6 flex-1 flex flex-col">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="text-[10px] text-cyan-400 font-black uppercase mb-1">{weapon.type}</p>
-                        <h3 className="text-xl font-bold text-white uppercase">{weapon.name}</h3>
+                        <p className="text-[10px] text-cyan-400 font-black uppercase mb-1">{t(weapon.type)}</p>
+                        <h3 className="text-xl font-bold text-white uppercase">{t(weapon.name)}</h3>
                       </div>
                       <span className={`text-[10px] font-black px-2 py-1 rounded ${isOutOfStock ? 'bg-red-500/20 text-red-500' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                        {isOutOfStock ? 'SOLD OUT' : `STOCK: ${weapon.stock}`}
+                        {isOutOfStock ? t('SOLD OUT') : `${t('STOCK')}: ${weapon.stock}`}
                       </span>
                     </div>
                     
                     <div className="mt-auto pt-4 border-t border-white/5 flex justify-between items-center">
                       <span className="font-mono text-xl font-black text-cyan-400 italic">
-                        {Number(weapon.price).toLocaleString()} <span className="text-[10px] not-italic text-white/50">CR</span>
+                        {Number(weapon.price).toLocaleString()} <span className="text-[10px] not-italic text-white/50">{t('CR')}</span>
                       </span>
                       <span className="text-white/20 group-hover:text-cyan-400 transition-colors">→</span>
                     </div>
@@ -171,7 +172,7 @@ function WeaponList() {
         ) : (
          
           <div className="col-span-full py-20 text-center">
-            <p className="!text-white/30 font-black uppercase tracking-widest text-xl">No weapons found in this category</p>
+            <p className="!text-white/30 font-black uppercase tracking-widest text-xl">{t('No weapons found in this category')}</p>
           </div>
         )}
       </div>
