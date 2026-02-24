@@ -41,6 +41,7 @@ func SetupRoutes(r *gin.Engine) {
 		admin.POST("/weapons", handlers.AddWeapon)
 		admin.PATCH("/weapons/:id", handlers.UpdateWeapon)
 		admin.DELETE("/weapons/:id", handlers.DeleteWeapon)
+		admin.GET("/orders", handlers.GetAllOrders)
 	}
 
 	// Static files

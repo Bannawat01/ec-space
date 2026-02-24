@@ -26,7 +26,77 @@ function WeaponList() {
   );
 
   return (
-    <div className="p-10 pt-24 min-h-screen bg-transparent">
+    <div className="min-h-screen bg-transparent">
+
+      {/* ===== HERO BANNER ===== */}
+      <div className="relative w-full overflow-hidden" style={{ minHeight: '420px' }}>
+        {/* Background glow effects */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-900/20 via-black/60 to-black/80 z-0" />
+        <div className="absolute -top-20 -left-20 w-[500px] h-[500px] rounded-full bg-cyan-500/10 blur-[120px] z-0" />
+        <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] rounded-full bg-blue-600/10 blur-[100px] z-0" />
+
+        {/* Content */}
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-10 md:px-20 pt-28 pb-12 gap-8">
+
+          {/* Left: Text */}
+          <div className="flex flex-col items-start text-left max-w-xl">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">Live Inventory Active</span>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-5xl md:text-7xl font-black italic uppercase tracking-tighter text-white mb-4 leading-none">
+              XENO <span className="text-cyan-400" style={{ textShadow: '0 0 40px rgba(6,182,212,0.6)' }}>ARMORY</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-white/40 text-sm md:text-base font-medium tracking-widest uppercase mb-8 max-w-xl">
+              Advanced Weapons & Equipment for the Modern Operative
+            </p>
+
+            {/* Stats row */}
+            <div className="flex flex-wrap gap-6 md:gap-12 mb-8">
+              {[
+                { label: 'Weapons', value: weapons.length > 0 ? weapons.length : '—' },
+                { label: 'Categories', value: '7' },
+                { label: 'In Stock', value: weapons.length > 0 ? weapons.filter(w => w.stock > 0).length : '—' },
+              ].map((stat) => (
+                <div key={stat.label} className="flex flex-col">
+                  <span className="text-2xl font-black text-cyan-400 font-mono italic">{stat.value}</span>
+                  <span className="text-[10px] text-white/30 uppercase tracking-[0.2em]">{stat.label}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA button */}
+            <a
+              href="#inventory"
+              className="px-8 py-3 rounded-full bg-cyan-500 hover:bg-cyan-400 text-white font-black uppercase tracking-widest text-xs transition-all shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:shadow-[0_0_50px_rgba(6,182,212,0.7)]"
+            >
+              Browse Arsenal →
+            </a>
+          </div>
+
+          {/* Right: Banner Image */}
+          <div className="relative flex-shrink-0 w-full md:w-auto">
+            <div className="absolute inset-0 rounded-2xl bg-cyan-500/10 blur-2xl scale-110" />
+            <img
+              src="/banner.png"
+              alt="Xeno Armory Banner"
+              className="relative z-10 w-full md:w-[420px] lg:w-[500px] object-contain drop-shadow-[0_0_40px_rgba(6,182,212,0.5)]"
+            />
+          </div>
+
+        </div>
+
+        {/* Bottom divider */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+      </div>
+
+      {/* ===== INVENTORY SECTION ===== */}
+      <div id="inventory" className="p-10 pt-10">
       <h1 className="text-4xl font-black mb-6 text-white italic uppercase tracking-tighter">
         XENO ARMORY <span className="text-cyan-400">INVENTORY</span>
       </h1>
@@ -105,6 +175,7 @@ function WeaponList() {
           </div>
         )}
       </div>
+      </div> {/* end #inventory */}
     </div>
   );
 }

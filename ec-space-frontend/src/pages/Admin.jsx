@@ -149,12 +149,15 @@ function WeaponRow({ weapon, onEdit, onUpdate, onDelete }) {
 }
 
 function Admin() {
+  const [tab, setTab] = useState('weapons');
   const [weapons, setWeapons] = useState([]);
   const [editData, setEditData] = useState({});
   const [panelOpen, setPanelOpen] = useState(false);
   const [newWeapon, setNewWeapon] = useState({ name: '', type: 'Standard', price: '', stock: '', description: '', image: null });
+  const [orders, setOrders] = useState([]);
 
   const username = localStorage.getItem('username');
+
   const fetchWeapons = async () => {
     try {
       const res = await api.get('/weapons');
@@ -162,7 +165,16 @@ function Admin() {
     } catch (err) { console.error('Fetch error:', err); }
   };
 
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await api.get('/admin/orders', { headers: { Authorization: `Bearer ${token}` } });
+      setOrders(res.data);
+    } catch (err) { console.error('Orders fetch error:', err); }
+  };
+
   useEffect(() => { fetchWeapons(); }, []);
+  useEffect(() => { if (tab === 'orders') fetchOrders(); }, [tab]);
 
   const handleUpdateWeapon = async (id) => {
     const data = editData[id];
@@ -220,20 +232,48 @@ function Admin() {
       `}</style>
 
       <div className="fixed top-16 left-0 w-full z-[60] flex items-center justify-between px-10 py-4 bg-black border-b-2 border-cyan-500/30 shadow-[0_0_25px_rgba(6,182,212,0.5)]">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]"></div>
-          <h1 className="text-xl font-black tracking-[0.2em] text-white uppercase">ADMIN CENTER</h1>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-cyan-500 rounded-full shadow-[0_0_10px_#06b6d4]"></div>
+            <h1 className="text-xl font-black tracking-[0.2em] text-white uppercase">ADMIN CENTER</h1>
+          </div>
+          <div className="flex gap-1">
+            {[{ key: 'weapons', label: 'Weapons' }, { key: 'orders', label: 'Orders' }].map(t => (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                style={tab === t.key
+                  ? { backgroundColor: '#06b6d4', color: '#ffffff', opacity: 1 }
+                  : { backgroundColor: 'transparent', color: 'rgba(255,255,255,0.4)', opacity: 1 }}
+                className="px-5 py-2 rounded-lg border border-cyan-500/30 text-xs font-black uppercase tracking-widest transition-all"
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
         </div>
-        
-        <button 
-          onClick={() => setPanelOpen(true)} 
-          style={{ backgroundColor: '#06b6d4', color: '#ffffff', opacity: 1 }}
-          className="px-6 py-2.5 rounded-lg border-2 border-cyan-300 text-xs font-black uppercase tracking-widest shadow-[0_0_25px_rgba(34,211,238,0.7)] transition-all active:scale-95"
-        >
-          + Deploy New Armament
-        </button>
+
+        {tab === 'weapons' && (
+          <button
+            onClick={() => setPanelOpen(true)}
+            style={{ backgroundColor: '#06b6d4', color: '#ffffff', opacity: 1 }}
+            className="px-6 py-2.5 rounded-lg border-2 border-cyan-300 text-xs font-black uppercase tracking-widest shadow-[0_0_25px_rgba(34,211,238,0.7)] transition-all active:scale-95"
+          >
+            + Deploy New Armament
+          </button>
+        )}
+        {tab === 'orders' && (
+          <button
+            onClick={fetchOrders}
+            style={{ backgroundColor: 'transparent', color: '#06b6d4', opacity: 1 }}
+            className="px-6 py-2.5 rounded-lg border-2 border-cyan-500/50 text-xs font-black uppercase tracking-widest transition-all active:scale-95 hover:border-cyan-400"
+          >
+            ↻ Refresh
+          </button>
+        )}
       </div>
 
+      {tab === 'weapons' && (
       <div className="px-10 pb-20 mt-10">
         <div className="rounded-2xl border-2 border-cyan-500/20 bg-black overflow-hidden shadow-2xl">
           <div className="overflow-x-auto">
@@ -245,6 +285,64 @@ function Admin() {
           </div>
         </div>
       </div>
+      )}
+
+      {tab === 'orders' && (
+      <div className="px-10 pb-20 mt-10">
+        <div className="rounded-2xl border-2 border-cyan-500/20 bg-black overflow-hidden shadow-2xl">
+          {orders.length === 0 ? (
+            <div className="py-20 text-center text-white/30 font-black uppercase tracking-widest">No orders found</div>
+          ) : (
+            <div className="overflow-x-auto custom-scrollbar">
+              <table className="w-full min-w-[900px] text-sm">
+                <thead>
+                  <tr className="border-b border-cyan-500/20">
+                    {['Order ID', 'User', 'Items', 'Total', 'Address', 'Status', 'Date'].map(h => (
+                      <th key={h} className="px-5 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {orders.map(order => (
+                    <tr key={order.id} className="border-b border-white/5 hover:bg-cyan-500/5 transition-colors">
+                      <td className="px-5 py-4 font-mono text-cyan-400 font-black">#{order.id}</td>
+                      <td className="px-5 py-4">
+                        <p className="text-white font-bold">{order.username}</p>
+                        <p className="text-white/30 text-[10px] font-mono">UID:{order.user_id}</p>
+                      </td>
+                      <td className="px-5 py-4 max-w-[200px]">
+                        {order.items?.map((item, i) => (
+                          <div key={i} className="flex items-center gap-2 mb-1">
+                            <span className="text-white/70 text-xs">{item.weapon?.name ?? `Weapon #${item.weapon_id}`}</span>
+                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-400">×{item.quantity}</span>
+                          </div>
+                        ))}
+                      </td>
+                      <td className="px-5 py-4 font-mono font-black text-white">
+                        {Number(order.total).toLocaleString()} <span className="text-[10px] text-white/30">CR</span>
+                      </td>
+                      <td className="px-5 py-4 text-white/50 text-xs max-w-[160px]">
+                        {order.address || <span className="text-white/20 italic">—</span>}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="px-2 py-1 rounded text-[10px] font-black uppercase bg-green-500/20 text-green-400 border border-green-500/30">
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-white/30 text-[11px] font-mono">
+                        {new Date(order.created_at).toLocaleDateString('th-TH', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        <br />
+                        <span className="text-white/20">{new Date(order.created_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+      )}
 
       <div className={`fixed top-0 right-0 h-full w-[450px] z-[200] transition-all duration-500 ease-in-out ${panelOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         {panelOpen && <div className="fixed inset-0 bg-black/90 -z-10" onClick={() => setPanelOpen(false)}></div>}

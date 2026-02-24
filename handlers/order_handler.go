@@ -44,6 +44,62 @@ func GetOrders(c *gin.Context) {
 	c.JSON(http.StatusOK, orders)
 }
 
+// AdminOrderResponse is the shape returned by GetAllOrders.
+type AdminOrderResponse struct {
+	ID        uint               `json:"id"`
+	UserID    uint               `json:"user_id"`
+	Username  string             `json:"username"`
+	Address   string             `json:"address"`
+	Total     float64            `json:"total"`
+	Status    string             `json:"status"`
+	CreatedAt time.Time          `json:"created_at"`
+	Items     []models.OrderItem `json:"items"`
+}
+
+// GetAllOrders returns every order in the system (admin only).
+func GetAllOrders(c *gin.Context) {
+	var orders []models.Order
+	config.DB.
+		Preload("Items.Weapon").
+		Order("created_at desc").
+		Find(&orders)
+
+	// Collect unique user IDs
+	idSet := make(map[uint]struct{}, len(orders))
+	for _, o := range orders {
+		idSet[o.UserID] = struct{}{}
+	}
+	userIDs := make([]uint, 0, len(idSet))
+	for id := range idSet {
+		userIDs = append(userIDs, id)
+	}
+
+	var users []models.User
+	config.DB.Where("id IN ?", userIDs).Find(&users)
+
+	userMap := make(map[uint]models.User, len(users))
+	for _, u := range users {
+		userMap[u.ID] = u
+	}
+
+	result := make([]AdminOrderResponse, len(orders))
+	for i, o := range orders {
+		u := userMap[o.UserID]
+		result[i] = AdminOrderResponse{
+			ID:        o.ID,
+			UserID:    o.UserID,
+			Username:  u.Username,
+			Address:   u.Address,
+			Total:     o.Total,
+			Status:    o.Status,
+			CreatedAt: o.CreatedAt,
+			Items:     o.Items,
+		}
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 // CreateOrder executes the full checkout flow inside a single atomic transaction.
 //
 // Flow:
